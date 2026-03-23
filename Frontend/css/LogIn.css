@@ -636,3 +636,90 @@ body {
         opacity: 0.5;
     }
 }
+
+.google-login-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.status-message {
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    display: block;
+    min-height: 20px;
+}
+
+.status-message.info {
+    color: #9ad7ff;
+    background: rgba(0, 153, 255, 0.08);
+    border: 1px solid rgba(0, 153, 255, 0.25);
+}
+
+.status-message.success {
+    color: #8cffc1;
+    background: rgba(0, 255, 136, 0.08);
+    border: 1px solid rgba(0, 255, 136, 0.25);
+}
+
+.status-message.error {
+    color: #ff9a9a;
+    background: rgba(255, 70, 70, 0.08);
+    border: 1px solid rgba(255, 70, 70, 0.25);
+}
+
+.success-message {
+    display: none;
+    margin-top: 20px;
+}
+
+.switch-account-btn {
+    margin-bottom: 12px;
+}
+
+.google-login-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+    min-height: 44px;
+}
+
+.switch-account-btn {
+    margin-bottom: 12px;
+}
+
+.status-message {
+    margin-top: 18px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    display: block;
+    min-height: 20px;
+}
+
+.status-message.info {
+    color: #9ad7ff;
+    background: rgba(0, 153, 255, 0.08);
+    border: 1px solid rgba(0, 153, 255, 0.25);
+}
+
+.status-message.success {
+    color: #8cffc1;
+    background: rgba(0, 255, 136, 0.08);
+    border: 1px solid rgba(0, 255, 136, 0.25);
+}
+
+.status-message.error {
+    color: #ff9a9a;
+    background: rgba(255, 70, 70, 0.08);
+    border: 1px solid rgba(255, 70, 70, 0.25);
+}
+
+.success-message {
+    display: none;
+    margin-top: 20px;
+}

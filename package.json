@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "cd Backend && node src/index.js"
+  }
+}

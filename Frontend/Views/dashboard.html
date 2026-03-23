@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+
+    <!-- Bootstrap 5 por CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- jQuery UI -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+    <!-- CSS del proyecto -->
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="with-side-menu-compact">
+
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="container-fluid">
+            <a href="#" class="site-logo">
+                <img src="/img/logo.png" alt="Logo">
+            </a>
+
+            <div class="site-header-content">
+                <div class="site-header-content-in">
+                    <div class="site-header-shown">
+                        <div class="dropdown user-menu">
+                            <button
+                                class="dropdown-toggle"
+                                id="dd-user-menu"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                <img src="/img/avatar-2-64.png" alt="Avatar del usuario">
+                                <span class="ms-2" id="nombreUsuario">Usuario</span>
+                            </button>
+
+                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dd-user-menu">
+                                <a class="dropdown-item" href="/perfil">
+                                    <span class="font-icon glyphicon glyphicon-user"></span> Perfil
+                                </a>
+                                <a class="dropdown-item" href="/configuracion">
+                                    <span class="font-icon glyphicon glyphicon-cog"></span> Configuración
+                                </a>
+                                <hr class="dropdown-divider">
+                                <a class="dropdown-item" href="/logout">
+                                    <span class="font-icon glyphicon glyphicon-log-out"></span> Cerrar sesión
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <div class="mobile-menu-left-overlay"></div>
+
+    <nav class="side-menu side-menu-compact">
+        <ul class="side-menu-list">
+            <li class="brown">
+                <a href="/admin/dashboard">
+                    <i class="font-icon font-icon-home"></i>
+                    <span class="lbl">Dashboard</span>
+                </a>
+            </li>
+
+            <li class="green">
+                <a href="/admin/usuarios">
+                    <i class="font-icon font-icon-users"></i>
+                    <span class="lbl">Usuarios</span>
+                </a>
+            </li>
+
+            <li class="gold">
+                <a href="/admin/vehiculos">
+                    <i class="fa fa-car"></i>
+                    <span class="lbl">Gestión de Vehículos</span>
+                </a>
+            </li>
+
+            <li class="blue">
+                <a href="/admin/parqueos">
+                    <i class="font-icon font-icon-speed"></i>
+                    <span class="lbl">Gestión de Parqueos</span>
+                </a>
+            </li>
+
+            <li class="yellow">
+                <a href="/admin/bitacora">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span class="lbl">Bitácora</span>
+                </a>
+            </li>
+
+            <li class="green">
+                <a href="/admin/disponibilidad">
+                    <i class="fa fa-car-side"></i>
+                    <span class="lbl">Disponibilidad de Parqueos</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="page-content">
+        <div class="container-fluid" id="main-content">
+            <h1>Bienvenido</h1>
+            <p>Este espacio reemplaza el contenido que antes inyectaba Razor.</p>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Ejemplo simple para reemplazar datos dinámicos
+        const usuario = {
+            nombre: "Fabian"
+        };
+
+        document.getElementById("nombreUsuario").textContent = usuario.nombre;
+    </script>
+</body>
+</html>
