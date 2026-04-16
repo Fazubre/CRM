@@ -1,0 +1,82 @@
+<div class="modal fade" id="modalEditarTicket" tabindex="-1" aria-labelledby="modalEditarTicketLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="formEditarTicket" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditarTicketLabel">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Editar Ticket
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="alertaFormularioEditarTicket" class="alert alert-danger d-none" role="alert"></div>
+
+                    <input type="hidden" id="editarTicketId" name="editarTicketId">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Número de ticket</label>
+                            <input type="text" class="form-control" id="editarNumeroTicket" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarEstado" class="form-label">Estado</label>
+                            <select class="form-select" id="editarEstado" name="editarEstado">
+                                <option value="abierto">Abierto</option>
+                                <option value="completado">Completado</option>
+                            </select>
+                        </div>      
+
+                        <div class="col-12">
+                            <label for="editarTitulo" class="form-label">Título</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarTitulo"
+                                name="editarTitulo"
+                                maxlength="120"
+                                required>
+                            <div class="invalid-feedback">Debe ingresar el título.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="editarDescripcion" class="form-label">Descripción</label>
+                            <textarea
+                                class="form-control"
+                                id="editarDescripcion"
+                                name="editarDescripcion"
+                                rows="5"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarPrioridad" class="form-label">Prioridad</label>
+                            <select class="form-select" id="editarPrioridad" name="editarPrioridad">
+                                <option value="baja">Baja</option>
+                                <option value="media">Media</option>
+                                <option value="alta">Alta</option>
+                                <option value="critica">Crítica</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarFechaVencimiento" class="form-label">Fecha de vencimiento</label>
+                            <input
+                                type="date"
+                                class="form-control"
+                                id="editarFechaVencimiento"
+                                name="editarFechaVencimiento">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnActualizarTicket">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

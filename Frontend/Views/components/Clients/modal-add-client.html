@@ -1,0 +1,120 @@
+<div class="modal fade" id="modalAgregarCliente" tabindex="-1" aria-labelledby="modalAgregarClienteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="formAgregarCliente" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAgregarClienteLabel">
+                        <i class="fa-solid fa-user-plus me-2"></i>Agregar Cliente
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="alertaFormularioCliente" class="alert alert-danger d-none" role="alert"></div>
+
+                    <input type="hidden" id="clienteCreadoPor" name="clienteCreadoPor">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="clienteNombre" class="form-label">Nombre</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="clienteNombre"
+                                name="clienteNombre"
+                                maxlength="120"
+                                placeholder="Ingrese el nombre del cliente"
+                                required>
+                            <div class="invalid-feedback">Debe ingresar el nombre del cliente.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="clienteCorreo" class="form-label">Correo</label>
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="clienteCorreo"
+                                name="clienteCorreo"
+                                maxlength="150"
+                                placeholder="Ingrese el correo del cliente"
+                                required>
+                            <div class="invalid-feedback">Debe ingresar un correo válido.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="clienteTelefono" class="form-label">Teléfono</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="clienteTelefono"
+                                name="clienteTelefono"
+                                maxlength="30"
+                                placeholder="Ingrese el teléfono">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="clienteEmpresa" class="form-label">Empresa</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="clienteEmpresa"
+                                name="clienteEmpresa"
+                                maxlength="120"
+                                placeholder="Ingrese la empresa">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="clienteIdentificacion" class="form-label">Identificación</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="clienteIdentificacion"
+                                name="clienteIdentificacion"
+                                maxlength="50"
+                                placeholder="Ingrese la identificación">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="clienteEstado" class="form-label">Estado</label>
+                            <select class="form-select" id="clienteEstado" name="clienteEstado">
+                                <option value="activo" selected>Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                                <option value="prospecto">Prospecto</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="clienteDireccion" class="form-label">Dirección</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="clienteDireccion"
+                                name="clienteDireccion"
+                                maxlength="200"
+                                placeholder="Ingrese la dirección">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="clienteNotas" class="form-label">Notas</label>
+                            <textarea
+                                class="form-control"
+                                id="clienteNotas"
+                                name="clienteNotas"
+                                rows="4"
+                                placeholder="Agregue notas sobre el cliente"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarCliente">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

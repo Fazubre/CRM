@@ -1,0 +1,73 @@
+<div class="modal fade" id="modalAgregarTicket" tabindex="-1" aria-labelledby="modalAgregarTicketLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="formAgregarTicket" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAgregarTicketLabel">
+                        <i class="fa-solid fa-ticket me-2"></i>Agregar Ticket
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="alertaFormularioTicket" class="alert alert-danger d-none" role="alert"></div>
+
+                    <input type="hidden" id="usuarioId" name="usuarioId">
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="titulo" class="form-label">Título</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="titulo"
+                                name="titulo"
+                                maxlength="120"
+                                placeholder="Ingrese el título del ticket"
+                                required>
+                            <div class="invalid-feedback">Debe ingresar el título.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea
+                                class="form-control"
+                                id="descripcion"
+                                name="descripcion"
+                                rows="4"
+                                placeholder="Describa el problema o solicitud"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="prioridad" class="form-label">Prioridad</label>
+                            <select class="form-select" id="prioridad" name="prioridad">
+                                <option value="baja">Baja</option>
+                                <option value="media" selected>Media</option>
+                                <option value="alta">Alta</option>
+                                <option value="critica">Crítica</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="fechaVencimiento" class="form-label">Fecha de vencimiento</label>
+                            <input
+                                type="date"
+                                class="form-control"
+                                id="fechaVencimiento"
+                                name="fechaVencimiento">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarTicket">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

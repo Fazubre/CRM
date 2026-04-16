@@ -1,0 +1,29 @@
+
+<div class="modal fade" id="modalEliminarCliente" tabindex="-1" aria-labelledby="modalEliminarClienteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEliminarClienteLabel">
+                    <i class="fa-solid fa-trash-can me-2"></i>Eliminar Cliente
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="eliminarClienteId" name="eliminarClienteId">
+
+                <p class="mb-2">¿Seguro que deseas eliminar este cliente?</p>
+                <p class="mb-0 text-muted">
+                    Cliente: <span id="nombreClienteEliminar" class="fw-semibold">-</span>
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnEliminarCliente">
+                    <i class="fa-solid fa-trash-can me-2"></i>Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

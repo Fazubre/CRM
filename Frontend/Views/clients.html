@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM | Clientes</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="with-side-menu-compact">
+
+    <header class="site-header">
+        <div class="container-fluid d-flex align-items-center justify-content-between">
+            <a href="dashboard.html" class="site-logo text-decoration-none d-flex align-items-center">
+                <span class="fw-bold fs-5 text-dark">CRM</span>
+            </a>
+
+            <div class="dropdown user-menu">
+                <button
+                    class="dropdown-toggle btn btn-link text-decoration-none d-flex align-items-center gap-2"
+                    id="dd-user-menu"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <span class="d-inline-flex justify-content-center align-items-center rounded-circle border"
+                          style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-user text-secondary"></i>
+                    </span>
+                    <span id="nombreUsuario">Usuario</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dd-user-menu">
+                    <li><a class="dropdown-item" href="dashboard.html">Dashboard</a></li>
+                    <li><a class="dropdown-item" href="tickets.html">Tickets</a></li>
+                    <li><a class="dropdown-item" href="clients.html">Clientes</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="LogIn.html">Cerrar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-menu-left-overlay"></div>
+
+    <nav class="side-menu side-menu-compact">
+        <ul class="side-menu-list">
+            <li class="brown">
+                <a href="dashboard.html">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="lbl">Dashboard</span>
+                </a>
+            </li>
+
+            <li class="blue">
+                <a href="tickets.html">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span class="lbl">Tickets</span>
+                </a>
+            </li>
+
+            <li class="green">
+                <a href="clients.html" aria-current="page">
+                    <i class="fa-solid fa-users"></i>
+                    <span class="lbl">Clientes</span>
+                </a>
+            </li>
+
+            <li class="gold">
+                <a href="#">
+                    <i class="fa-solid fa-building"></i>
+                    <span class="lbl">Empresas</span>
+                </a>
+            </li>
+
+            <li class="yellow">
+                <a href="#">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span class="lbl">Áreas</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="page-content">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h1 class="mb-1">Clientes</h1>
+                    <p class="text-muted mb-0">Gestión y visualización de los clientes registrados en el CRM.</p>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-primary" id="btnNuevoCliente">
+                        <i class="fa-solid fa-plus me-2"></i>Nuevo cliente
+                    </button>
+                </div>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <h5 class="mb-1">Listado de clientes</h5>
+                        <p class="text-muted mb-0">Consulta, edita y administra los clientes del sistema.</p>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" id="btnRecargarClientes">
+                            <i class="fa-solid fa-rotate-right me-2"></i>Recargar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tablaClientes" class="table align-middle w-100">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>Teléfono</th>
+                                <th>Empresa</th>
+                                <th>Identificación</th>
+                                <th>Estado</th>
+                                <th>Fecha de creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">Cargando clientes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="modalClienteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="formCliente">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalClienteLabel">Nuevo cliente</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" id="clienteId">
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombre" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="correo" class="form-label">Correo</label>
+                                <input type="email" class="form-control" id="correo" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="telefono">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="empresa" class="form-label">Empresa</label>
+                                <input type="text" class="form-control" id="empresa">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="identificacion" class="form-label">Identificación</label>
+                                <input type="text" class="form-control" id="identificacion">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="estado" class="form-label">Estado</label>
+                                <select class="form-select" id="estado">
+                                    <option value="activo">Activo</option>
+                                    <option value="inactivo">Inactivo</option>
+                                    <option value="prospecto">Prospecto</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="direccion" class="form-label">Dirección</label>
+                                <input type="text" class="form-control" id="direccion">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="notas" class="form-label">Notas</label>
+                                <textarea class="form-control" id="notas" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnGuardarCliente">
+                            Guardar cliente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalVerCliente" tabindex="-1" aria-labelledby="modalVerClienteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalVerClienteLabel">Detalle del cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nombre</label>
+                            <div class="form-control bg-light" id="verNombre"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Correo</label>
+                            <div class="form-control bg-light" id="verCorreo"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teléfono</label>
+                            <div class="form-control bg-light" id="verTelefono"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Empresa</label>
+                            <div class="form-control bg-light" id="verEmpresa"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Identificación</label>
+                            <div class="form-control bg-light" id="verIdentificacion"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Estado</label>
+                            <div class="form-control bg-light" id="verEstado"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Dirección</label>
+                            <div class="form-control bg-light" id="verDireccion"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Notas</label>
+                            <div class="form-control bg-light" id="verNotas" style="min-height: 100px;"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha de creación</label>
+                            <div class="form-control bg-light" id="verFechaCreacion"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Última actualización</label>
+                            <div class="form-control bg-light" id="verFechaActualizacion"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEliminarCliente" tabindex="-1" aria-labelledby="modalEliminarClienteLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEliminarClienteLabel">Eliminar cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="clienteIdEliminar">
+                    <p class="mb-0">¿Seguro que deseas eliminar este cliente?</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmarEliminarCliente">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="../js/clients.js"></script>
+</body>
+</html>

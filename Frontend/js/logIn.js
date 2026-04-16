@@ -135,13 +135,6 @@ async function handleGoogleResponse(response) {
 
         usuarioActual = data.usuario;
         showSuccess(usuarioActual);
-
-        // Aquí luego puedes guardar sesión local si quieres
-        // localStorage.setItem("usuario", JSON.stringify(usuarioActual));
-
-        setTimeout(() => {
-            window.location.href = "../html/dashboard.html";
-        }, 1200);
     } catch (error) {
         console.error("Google login error:", error);
         showStatus(error.message || "Unexpected error during Google login.", "error");
@@ -162,16 +155,21 @@ function showSuccess(usuario) {
 
     if (successMessage) {
         successMessage.style.display = "block";
-        successMessage.classList.add("show");
     }
 
     if (successText) {
         const nombre = usuario.nombre || usuario.correo || "user";
-        successText.textContent = `Welcome, ${nombre}. Google login completed successfully.`;
+        successText.textContent = `Welcome, ${nombre}. Redirecting to your dashboard...`;
     }
+
+    localStorage.setItem("usuarioCRM", JSON.stringify(usuario));
 
     showStatus("Login successful.", "success");
     console.log("Usuario autenticado:", usuario);
+
+    setTimeout(() => {
+        window.location.href = "dashboard.html";
+    }, 1200);
 }
 
 function showStatus(message, type) {

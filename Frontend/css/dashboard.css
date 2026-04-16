@@ -475,3 +475,37 @@ img {
     min-width: 200px;
   }
 }
+.page-content {
+  padding-top: calc(var(--header-height) + 24px);
+  padding-right: 24px;
+  padding-bottom: 24px;
+}
+
+.dashboard-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 1.25rem;
+}
+
+.ticket-summary-card h3 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.ticket-summary-label {
+  margin-bottom: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+#tablaTickets th {
+  white-space: nowrap;
+}
+
+#tablaTickets td {
+  vertical-align: middle;
+}

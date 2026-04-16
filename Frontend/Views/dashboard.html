@@ -3,131 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>CRM | Dashboard</title>
 
-    <!-- Bootstrap 5 por CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-    <!-- jQuery UI -->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-
-    <!-- CSS del proyecto -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
 <body class="with-side-menu-compact">
 
-    <!-- HEADER -->
     <header class="site-header">
-        <div class="container-fluid">
-            <a href="#" class="site-logo">
-                <img src="/img/logo.png" alt="Logo">
+        <div class="container-fluid d-flex align-items-center justify-content-between">
+            <a href="dashboard.html" class="site-logo text-decoration-none d-flex align-items-center">
+                <span class="fw-bold fs-5 text-dark">CRM</span>
             </a>
 
-            <div class="site-header-content">
-                <div class="site-header-content-in">
-                    <div class="site-header-shown">
-                        <div class="dropdown user-menu">
-                            <button
-                                class="dropdown-toggle"
-                                id="dd-user-menu"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                <img src="/img/avatar-2-64.png" alt="Avatar del usuario">
-                                <span class="ms-2" id="nombreUsuario">Usuario</span>
-                            </button>
+            <div class="dropdown user-menu">
+                <button
+                    class="dropdown-toggle btn btn-link text-decoration-none d-flex align-items-center gap-2"
+                    id="dd-user-menu"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <span class="d-inline-flex justify-content-center align-items-center rounded-circle border"
+                          style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-user text-secondary"></i>
+                    </span>
+                    <span id="nombreUsuario">Usuario</span>
+                </button>
 
-                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dd-user-menu">
-                                <a class="dropdown-item" href="/perfil">
-                                    <span class="font-icon glyphicon glyphicon-user"></span> Perfil
-                                </a>
-                                <a class="dropdown-item" href="/configuracion">
-                                    <span class="font-icon glyphicon glyphicon-cog"></span> Configuración
-                                </a>
-                                <hr class="dropdown-divider">
-                                <a class="dropdown-item" href="/logout">
-                                    <span class="font-icon glyphicon glyphicon-log-out"></span> Cerrar sesión
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dd-user-menu">
+                    <li><a class="dropdown-item" href="dashboard.html">Dashboard</a></li>
+                    <li><a class="dropdown-item" href="tickets.html">Tickets</a></li>
+                    <li><a class="dropdown-item" href="clients.html">Clientes</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="LogIn.html">Cerrar sesión</a></li>
+                </ul>
             </div>
         </div>
     </header>
 
-    <!-- SIDEBAR -->
     <div class="mobile-menu-left-overlay"></div>
 
     <nav class="side-menu side-menu-compact">
         <ul class="side-menu-list">
             <li class="brown">
-                <a href="/admin/dashboard">
-                    <i class="font-icon font-icon-home"></i>
+                <a href="dashboard.html" aria-current="page">
+                    <i class="fa-solid fa-house"></i>
                     <span class="lbl">Dashboard</span>
                 </a>
             </li>
 
+            <li class="blue">
+                <a href="tickets.html">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span class="lbl">Tickets</span>
+                </a>
+            </li>
+
             <li class="green">
-                <a href="/admin/usuarios">
-                    <i class="font-icon font-icon-users"></i>
-                    <span class="lbl">Usuarios</span>
+                <a href="clients.html">
+                    <i class="fa-solid fa-users"></i>
+                    <span class="lbl">Clientes</span>
                 </a>
             </li>
 
             <li class="gold">
-                <a href="/admin/vehiculos">
-                    <i class="fa fa-car"></i>
-                    <span class="lbl">Gestión de Vehículos</span>
-                </a>
-            </li>
-
-            <li class="blue">
-                <a href="/admin/parqueos">
-                    <i class="font-icon font-icon-speed"></i>
-                    <span class="lbl">Gestión de Parqueos</span>
+                <a href="#">
+                    <i class="fa-solid fa-building"></i>
+                    <span class="lbl">Empresas</span>
                 </a>
             </li>
 
             <li class="yellow">
-                <a href="/admin/bitacora">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span class="lbl">Bitácora</span>
-                </a>
-            </li>
-
-            <li class="green">
-                <a href="/admin/disponibilidad">
-                    <i class="fa fa-car-side"></i>
-                    <span class="lbl">Disponibilidad de Parqueos</span>
+                <a href="#">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span class="lbl">Áreas</span>
                 </a>
             </li>
         </ul>
     </nav>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <main class="page-content">
         <div class="container-fluid" id="main-content">
-            <h1>Bienvenido</h1>
-            <p>Este espacio reemplaza el contenido que antes inyectaba Razor.</p>
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h1 class="mb-1">Dashboard</h1>
+                    <p class="text-muted mb-0">Vista general del CRM y acceso rápido a los módulos principales.</p>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="tickets.html" class="btn btn-primary">
+                        <i class="fa-solid fa-ticket me-2"></i>Ir a Tickets
+                    </a>
+
+                    <a href="clients.html" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-users me-2"></i>Ir a Clientes
+                    </a>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="dashboard-card ticket-summary-card">
+                        <p class="ticket-summary-label">Total de tickets</p>
+                        <h3 id="totalTickets">0</h3>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="dashboard-card ticket-summary-card">
+                        <p class="ticket-summary-label">Tickets abiertos</p>
+                        <h3 id="ticketsAbiertos">0</h3>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="dashboard-card ticket-summary-card">
+                        <p class="ticket-summary-label">Tickets completados</p>
+                        <h3 id="ticketsCompletados">0</h3>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="dashboard-card ticket-summary-card">
+                        <p class="ticket-summary-label">Alta prioridad</p>
+                        <h3 id="ticketsAltaPrioridad">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <h5 class="mb-1">Tickets recientes</h5>
+                        <p class="text-muted mb-0">Resumen de los tickets registrados en el sistema.</p>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" id="btnRecargarTickets">
+                            <i class="fa-solid fa-rotate-right me-2"></i>Recargar
+                        </button>
+                        <a href="tickets.html" class="btn btn-primary">
+                            Ver todos
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle" id="tablaTicketsDashboard">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Título</th>
+                                <th>Cliente</th>
+                                <th>Empresa</th>
+                                <th>Estado</th>
+                                <th>Prioridad</th>
+                                <th>Creación</th>
+                                <th>Vencimiento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">Cargando tickets...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </main>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        // Ejemplo simple para reemplazar datos dinámicos
-        const usuario = {
-            nombre: "Fabian"
-        };
-
-        document.getElementById("nombreUsuario").textContent = usuario.nombre;
-    </script>
+    <script src="../js/dashboard.js"></script>
 </body>
 </html>

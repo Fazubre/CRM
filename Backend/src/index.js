@@ -4,6 +4,8 @@ const path = require("path");
 require("dotenv").config();
 
 const googleLoginRouter = require("../services/GoogleLogIn");
+const ticketRoutes = require("../routes/Ticket.route");
+const clientRoutes = require("../routes/Client.route");
 
 const app = express();
 
@@ -28,7 +30,15 @@ app.get("/test", (req, res) => {
     });
 });
 
+
+//Routes
+
 app.use("/auth", googleLoginRouter);
+
+app.use("/tickets", ticketRoutes);
+
+
+app.use("/clients", clientRoutes);
 
 const PORT = process.env.PORT || 3000;
 
@@ -36,3 +46,4 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`Ir a http://localhost:${PORT}`);
 });
+

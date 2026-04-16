@@ -1,0 +1,117 @@
+
+<div class="modal fade" id="modalEditarCliente" tabindex="-1" aria-labelledby="modalEditarClienteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="formEditarCliente" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditarClienteLabel">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Editar Cliente
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="alertaFormularioEditarCliente" class="alert alert-danger d-none" role="alert"></div>
+
+                    <input type="hidden" id="editarClienteId" name="editarClienteId">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">ID del cliente</label>
+                            <input type="text" class="form-control" id="editarClienteCodigo" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarClienteEstado" class="form-label">Estado</label>
+                            <select class="form-select" id="editarClienteEstado" name="editarClienteEstado">
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                                <option value="prospecto">Prospecto</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarClienteNombre" class="form-label">Nombre</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarClienteNombre"
+                                name="editarClienteNombre"
+                                maxlength="120"
+                                required>
+                            <div class="invalid-feedback">Debe ingresar el nombre del cliente.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarClienteCorreo" class="form-label">Correo</label>
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="editarClienteCorreo"
+                                name="editarClienteCorreo"
+                                maxlength="150"
+                                required>
+                            <div class="invalid-feedback">Debe ingresar un correo válido.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarClienteTelefono" class="form-label">Teléfono</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarClienteTelefono"
+                                name="editarClienteTelefono"
+                                maxlength="30">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarClienteEmpresa" class="form-label">Empresa</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarClienteEmpresa"
+                                name="editarClienteEmpresa"
+                                maxlength="120">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarClienteIdentificacion" class="form-label">Identificación</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarClienteIdentificacion"
+                                name="editarClienteIdentificacion"
+                                maxlength="50">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarClienteDireccion" class="form-label">Dirección</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarClienteDireccion"
+                                name="editarClienteDireccion"
+                                maxlength="200">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="editarClienteNotas" class="form-label">Notas</label>
+                            <textarea
+                                class="form-control"
+                                id="editarClienteNotas"
+                                name="editarClienteNotas"
+                                rows="5"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnActualizarCliente">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
