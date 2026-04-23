@@ -1,0 +1,96 @@
+<div class="modal fade" id="modalEmployee" tabindex="-1" aria-labelledby="modalEmployeeLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="formEmployee">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEmployeeLabel">Nuevo employee</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="employeeId">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="correo" class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="correo" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="google_id" class="form-label">Google ID</label>
+                            <input type="text" class="form-control" id="google_id">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="foto_url" class="form-label">Foto URL</label>
+                            <input type="text" class="form-control" id="foto_url">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="rol" class="form-label">Rol</label>
+                            <select class="form-select" id="rol">
+                                <option value="employee">Employee</option>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="activo" class="form-label">Estado</label>
+                            <select class="form-select" id="activo">
+                                <option value="true">Activo</option>
+                                <option value="false">Inactivo</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="correo_verificado" class="form-label">Correo verificado</label>
+                            <select class="form-select" id="correo_verificado">
+                                <option value="true">Sí</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="calendar_habilitado" class="form-label">Google Calendar habilitado</label>
+                            <select class="form-select" id="calendar_habilitado">
+                                <option value="false">No</option>
+                                <option value="true">Sí</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="calendar_id" class="form-label">Calendar ID</label>
+                            <input type="text" class="form-control" id="calendar_id" placeholder="primary">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="timezone" class="form-label">Timezone</label>
+                            <input type="text" class="form-control" id="timezone" placeholder="America/Costa_Rica">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="google_refresh_token" class="form-label">Google Refresh Token</label>
+                            <input type="text" class="form-control" id="google_refresh_token" placeholder="Se usará después para Calendar">
+                            <div class="form-text">
+                                Este campo queda listo para la integración futura con Google Calendar.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarEmployee">
+                        Guardar employee
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

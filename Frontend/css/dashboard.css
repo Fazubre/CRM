@@ -508,4 +508,192 @@ img {
 
 #tablaTickets td {
   vertical-align: middle;
+}/* ===== CRM Voyager | Palette override ===== */
+:root {
+  --color-bg: #f6f4fb;
+  --color-surface: #ffffff;
+  --color-border: #e3def1;
+  --color-text: #2c235a;
+  --color-text-muted: #6d6791;
+  --color-primary: #354093;
+  --color-primary-hover: #2c235a;
+  --color-success: #f3921b;
+  --color-warning: #fcc00d;
+  --color-danger: #e83a49;
+  --color-brown: #2c235a;
+  --shadow-soft: 0 10px 28px rgba(44, 35, 90, 0.08);
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(53, 64, 147, 0.07), transparent 28%),
+    linear-gradient(180deg, #faf9fd 0%, var(--color-bg) 100%);
+}
+
+.site-header {
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 4px 18px rgba(44, 35, 90, 0.05);
+}
+
+.user-menu .dropdown-toggle:hover,
+.user-menu .dropdown-toggle:focus,
+.user-menu .dropdown-toggle.show {
+  background: rgba(53, 64, 147, 0.08);
+  border-color: var(--color-border);
+  box-shadow: 0 4px 14px rgba(53, 64, 147, 0.12);
+}
+
+.user-menu .dropdown-item:hover,
+.user-menu .dropdown-item:focus {
+  background: rgba(53, 64, 147, 0.08);
+  color: var(--color-primary);
+}
+
+.side-menu {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.side-menu-list > li > a:hover,
+.side-menu-list > li > a:focus {
+  background: rgba(53, 64, 147, 0.08);
+  color: var(--color-text);
+}
+
+.side-menu-list > li.brown > a i {
+  color: var(--color-brown);
+}
+
+.side-menu-list > li.green > a i {
+  color: var(--color-success);
+}
+
+.side-menu-list > li.gold > a i {
+  color: var(--color-warning);
+}
+
+.side-menu-list > li.blue > a i {
+  color: var(--color-primary);
+}
+
+.side-menu-list > li.yellow > a i {
+  color: var(--color-danger);
+}
+
+.side-menu-list > li > a.active,
+.side-menu-list > li > a[aria-current="page"] {
+  background: rgba(53, 64, 147, 0.12);
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1px rgba(53, 64, 147, 0.18);
+}
+
+.content-card,
+.box-typical,
+.dashboard-card,
+.card,
+.modal-content,
+.dropdown-menu {
+  border-color: var(--color-border);
+}
+
+.table {
+  --bs-table-striped-bg: #f7f5fc;
+  --bs-table-hover-bg: #efeafb;
+  --bs-table-border-color: #e9e4f4;
+}
+
+.table thead th {
+  color: var(--color-text);
+  background: #f7f5fc;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 18px rgba(53, 64, 147, 0.18);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+}
+
+.btn-warning {
+  background-color: var(--color-warning);
+  border-color: var(--color-warning);
+  color: var(--color-text);
+}
+
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning:active {
+  background-color: var(--color-success) !important;
+  border-color: var(--color-success) !important;
+  color: #ffffff !important;
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.form-control,
+.form-select {
+  border-color: #d8d2ea;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(53, 64, 147, 0.45);
+  box-shadow: 0 0 0 0.2rem rgba(53, 64, 147, 0.12);
+}
+
+.card-header {
+  background: #f7f5fc;
+}
+
+.bg-primary {
+  background-color: var(--color-primary) !important;
+}
+
+.bg-success {
+  background-color: var(--color-success) !important;
+}
+
+.bg-warning {
+  background-color: var(--color-warning) !important;
+  color: var(--color-text) !important;
+}
+
+.bg-danger {
+  background-color: var(--color-danger) !important;
+}
+
+.text-primary {
+  color: var(--color-primary) !important;
+}
+
+.alert-primary {
+  color: var(--color-primary);
+  background-color: rgba(53, 64, 147, 0.1);
+  border-color: rgba(53, 64, 147, 0.18);
+}
+
+.alert-warning {
+  color: #8a6100;
+  background-color: rgba(252, 192, 13, 0.15);
+  border-color: rgba(252, 192, 13, 0.24);
+}
+
+.alert-danger {
+  color: #a52230;
+  background-color: rgba(232, 58, 73, 0.12);
+  border-color: rgba(232, 58, 73, 0.22);
+}
+.logo-voyager {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
 }

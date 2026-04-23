@@ -1,0 +1,28 @@
+<div class="modal fade" id="modalStatusEmployee" tabindex="-1" aria-labelledby="modalStatusEmployeeLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalStatusEmployeeLabel">Cambiar estado del employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="statusEmployeeId">
+                <p class="mb-3" id="textoStatusEmployee">¿Deseas actualizar el estado de este employee?</p>
+
+                <label for="nuevoStatusEmployee" class="form-label">Nuevo estado</label>
+                <select class="form-select" id="nuevoStatusEmployee">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarStatusEmployee">
+                    Guardar cambio
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

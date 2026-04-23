@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM | Dashboard</title>
+    <title>CRM | Employees</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
 <body class="with-side-menu-compact">
@@ -35,6 +36,7 @@
                     <li><a class="dropdown-item" href="dashboard.html">Dashboard</a></li>
                     <li><a class="dropdown-item" href="tickets.html">Tickets</a></li>
                     <li><a class="dropdown-item" href="clients.html">Clientes</a></li>
+                    <li><a class="dropdown-item" href="employees.html">Employees</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="LogIn.html">Cerrar sesión</a></li>
                 </ul>
@@ -44,10 +46,10 @@
 
     <div class="mobile-menu-left-overlay"></div>
 
-    <nav class="side-menu side-menu-compact">
+     <nav class="side-menu side-menu-compact">
         <ul class="side-menu-list">
             <li class="brown">
-                <a href="dashboard.html" aria-current="page">
+                <a href="dashboard.html">
                     <i class="fa-solid fa-house"></i>
                     <span class="lbl">Dashboard</span>
                 </a>
@@ -61,7 +63,7 @@
             </li>
 
             <li class="green">
-                <a href="employee.html">
+                <a href="employee.html" aria-current="page">
                     <i class="fa-solid fa-users"></i>
                     <span class="lbl">Empleados</span>
                 </a>
@@ -84,89 +86,54 @@
     </nav>
 
     <main class="page-content">
-        <div class="container-fluid" id="main-content">
+        <div class="container-fluid">
 
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
-                    <h1 class="mb-1">Dashboard</h1>
-                    <p class="text-muted mb-0">Vista general del CRM y acceso rápido a los módulos principales.</p>
+                    <h1 class="mb-1">Employees</h1>
+                    <p class="text-muted mb-0">Gestión, visualización y configuración básica de employees del CRM.</p>
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap">
-                    <a href="tickets.html" class="btn btn-primary">
-                        <i class="fa-solid fa-ticket me-2"></i>Ir a Tickets
-                    </a>
-
-                    <a href="clients.html" class="btn btn-outline-primary">
-                        <i class="fa-solid fa-users me-2"></i>Ir a Clientes
-                    </a>
+                    <button type="button" class="btn btn-primary" id="btnNuevoEmployee">
+                        <i class="fa-solid fa-plus me-2"></i>Nuevo employee
+                    </button>
                 </div>
             </div>
 
-            <div class="row g-3 mb-4">
-                <div class="col-12 col-md-6 col-xl-3">
-                    <div class="dashboard-card ticket-summary-card">
-                        <p class="ticket-summary-label">Total de tickets</p>
-                        <h3 id="totalTickets">0</h3>
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
-                    <div class="dashboard-card ticket-summary-card">
-                        <p class="ticket-summary-label">Tickets abiertos</p>
-                        <h3 id="ticketsAbiertos">0</h3>
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
-                    <div class="dashboard-card ticket-summary-card">
-                        <p class="ticket-summary-label">Tickets completados</p>
-                        <h3 id="ticketsCompletados">0</h3>
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-6 col-xl-3">
-                    <div class="dashboard-card ticket-summary-card">
-                        <p class="ticket-summary-label">Alta prioridad</p>
-                        <h3 id="ticketsAltaPrioridad">0</h3>
-                    </div>
-                </div>
-            </div>
+            <div id="alertContainer"></div>
 
             <div class="dashboard-card">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <div>
-                        <h5 class="mb-1">Tickets recientes</h5>
-                        <p class="text-muted mb-0">Resumen de los tickets registrados en el sistema.</p>
+                        <h5 class="mb-1">Listado de employees</h5>
+                        <p class="text-muted mb-0">Consulta, edita y administra los employees registrados en el sistema.</p>
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary" id="btnRecargarTickets">
+                        <button class="btn btn-outline-primary" id="btnRecargarEmployees">
                             <i class="fa-solid fa-rotate-right me-2"></i>Recargar
                         </button>
-                        <a href="tickets.html" class="btn btn-primary">
-                            Ver todos
-                        </a>
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table align-middle" id="tablaTicketsDashboard">
+                    <table id="tablaEmployees" class="table align-middle w-100">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Título</th>
-                                <th>Cliente</th>
-                                <th>Empresa</th>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>Rol</th>
                                 <th>Estado</th>
-                                <th>Prioridad</th>
-                                <th>Creación</th>
-                                <th>Vencimiento</th>
+                                <th>Google</th>
+                                <th>Calendar</th>
+                                <th>Último login</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="ticketsTableBody">
+                        <tbody>
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">Cargando tickets...</td>
+                                <td colspan="8" class="text-center text-muted py-4">Cargando employees...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -176,7 +143,12 @@
         </div>
     </main>
 
+    <div id="employeesModalsContainer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/dashboard.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+    <script src="../js/employees.js"></script>
 </body>
 </html>

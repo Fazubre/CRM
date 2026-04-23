@@ -1,5 +1,6 @@
 const express = require("express");
 const { OAuth2Client } = require("google-auth-library");
+const { syncEmployeeFromGoogle } = require("../models/Employee.model");
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.post("/google", async (req, res) => {
         if (!credential) {
             return res.status(400).json({
                 ok: false,
-                mensaje: "No se recibió el token de Google"
+                mensaje: "No se recibió el token de Google."
             });
         }
 
@@ -26,7 +27,7 @@ router.post("/google", async (req, res) => {
         if (!payload) {
             return res.status(401).json({
                 ok: false,
-                mensaje: "No fue posible obtener los datos del usuario"
+                mensaje: "No fue posible obtener los datos del usuario."
             });
         }
 
@@ -38,17 +39,19 @@ router.post("/google", async (req, res) => {
             correo_verificado: payload.email_verified || false
         };
 
+        const employeeGuardado = await syncEmployeeFromGoogle(usuarioGoogle);
+
         return res.status(200).json({
             ok: true,
-            mensaje: "Login con Google exitoso",
-            usuario: usuarioGoogle
+            mensaje: "Login con Google exitoso.",
+            usuario: employeeGuardado
         });
     } catch (error) {
-        console.error("Error en login con Google:", error.message);
+        console.error("Error en login con Google:", error);
 
         return res.status(401).json({
             ok: false,
-            mensaje: "Token inválido, expirado o no autorizado"
+            mensaje: error.message || "Token inválido, expirado o no autorizado."
         });
     }
 });

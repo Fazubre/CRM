@@ -6,6 +6,7 @@ require("dotenv").config();
 const googleLoginRouter = require("../services/GoogleLogIn");
 const ticketRoutes = require("../routes/Ticket.route");
 const clientRoutes = require("../routes/Client.route");
+const employeeRoutes = require("../routes/Employee.route");
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/auth", googleLoginRouter);
 
 app.use("/tickets", ticketRoutes);
 
+app.use("/employees", employeeRoutes);
 
 app.use("/clients", clientRoutes);
 

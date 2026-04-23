@@ -1,6 +1,7 @@
-import "dotenv/config";
-import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+require("dotenv").config();
+
+const { cert, getApps, initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
 
 const {
     FIREBASE_PROJECT_ID,
@@ -35,4 +36,7 @@ const firebaseApp =
 
 const db = getFirestore(firebaseApp);
 
-export { firebaseApp, db };
+module.exports = {
+    firebaseApp,
+    db
+};

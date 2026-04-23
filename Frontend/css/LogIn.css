@@ -722,4 +722,208 @@ body {
 .success-message {
     display: none;
     margin-top: 20px;
+}/* ===== CRM Voyager | Palette override ===== */
+:root {
+    --crm-indigo: #2c235a;
+    --crm-blue: #354093;
+    --crm-yellow: #fcc00d;
+    --crm-orange: #f3921b;
+    --crm-red: #e83a49;
+    --crm-surface: rgba(32, 25, 69, 0.88);
+    --crm-surface-2: #241d4a;
+    --crm-text: #ffffff;
+    --crm-text-soft: #d7d3ea;
+    --crm-border: rgba(252, 192, 13, 0.18);
+}
+
+body {
+    background:
+        radial-gradient(circle at top left, rgba(53, 64, 147, 0.42), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(232, 58, 73, 0.18), transparent 30%),
+        linear-gradient(135deg, #1a1437 0%, #2c235a 48%, #354093 100%);
+}
+
+.login-card {
+    background: var(--crm-surface);
+    border: 1px solid rgba(252, 192, 13, 0.14);
+    box-shadow:
+        0 20px 44px rgba(16, 12, 36, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.login-card::before {
+    background: linear-gradient(90deg, transparent, var(--crm-yellow), transparent);
+}
+
+.login-card:hover {
+    box-shadow:
+        0 24px 60px rgba(16, 12, 36, 0.62),
+        0 0 0 1px rgba(252, 192, 13, 0.18),
+        0 0 40px rgba(243, 146, 27, 0.16);
+}
+
+.logo-icon {
+    background: linear-gradient(135deg, var(--crm-yellow), var(--crm-orange));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 20px rgba(243, 146, 27, 0.34));
+}
+
+.login-header p,
+.checkbox-label,
+.forgot-password,
+.signup-link p,
+.input-wrapper label,
+.status-message,
+.success-message p {
+    color: var(--crm-text-soft);
+}
+
+.input-wrapper input {
+    background: var(--crm-surface-2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--crm-text);
+}
+
+.input-wrapper input:focus {
+    border-color: var(--crm-yellow);
+    background: rgba(44, 35, 90, 0.92);
+    box-shadow:
+        0 0 0 3px rgba(252, 192, 13, 0.14),
+        0 4px 20px rgba(53, 64, 147, 0.22);
+}
+
+.input-wrapper input:focus + label,
+.input-wrapper input:valid + label {
+    color: var(--crm-yellow);
+}
+
+.input-line {
+    background: linear-gradient(90deg, var(--crm-yellow), var(--crm-orange));
+}
+
+.password-toggle:hover {
+    color: var(--crm-yellow);
+    background: rgba(252, 192, 13, 0.12);
+}
+
+.password-toggle:hover .toggle-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fcc00d' stroke-width='2'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'/%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'/%3e%3c/svg%3e");
+}
+
+.custom-checkbox::after {
+    background: var(--crm-yellow);
+}
+
+.remember-wrapper input[type="checkbox"]:checked + .checkbox-label .custom-checkbox {
+    border-color: var(--crm-yellow);
+    background: rgba(252, 192, 13, 0.14);
+    box-shadow: 0 0 10px rgba(243, 146, 27, 0.28);
+}
+
+.forgot-password:hover,
+.signup-link a {
+    color: var(--crm-yellow);
+}
+
+.signup-link a:hover {
+    color: var(--crm-orange);
+    text-shadow: 0 0 10px rgba(243, 146, 27, 0.35);
+}
+
+.login-btn {
+    background: linear-gradient(135deg, var(--crm-yellow), var(--crm-orange));
+    color: var(--crm-indigo);
+}
+
+.btn-loader {
+    border-top-color: var(--crm-indigo);
+}
+
+.login-btn:hover {
+    box-shadow:
+        0 10px 30px rgba(252, 192, 13, 0.22),
+        0 0 40px rgba(243, 146, 27, 0.18);
+}
+
+.divider::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
+.divider span {
+    background: rgba(32, 25, 69, 0.95);
+    color: var(--crm-text-soft);
+}
+
+.social-btn {
+    background: rgba(36, 29, 74, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.social-btn:hover {
+    border-color: var(--crm-yellow);
+    box-shadow: 0 4px 20px rgba(243, 146, 27, 0.14);
+}
+
+.error-message {
+    color: #ffd6da;
+    background: rgba(232, 58, 73, 0.16);
+    border: 1px solid rgba(232, 58, 73, 0.28);
+}
+
+.form-group.error .input-wrapper input {
+    border-color: var(--crm-red);
+    background: rgba(232, 58, 73, 0.08);
+    box-shadow: 0 0 0 3px rgba(232, 58, 73, 0.12);
+}
+
+.success-icon {
+    background: linear-gradient(135deg, var(--crm-yellow), var(--crm-orange));
+    color: var(--crm-indigo);
+    box-shadow: 0 0 30px rgba(243, 146, 27, 0.35);
+}
+
+.status-message.info {
+    color: #d8ddff;
+    background: rgba(53, 64, 147, 0.2);
+    border: 1px solid rgba(53, 64, 147, 0.34);
+}
+
+.status-message.success {
+    color: #fff1bf;
+    background: rgba(252, 192, 13, 0.16);
+    border: 1px solid rgba(252, 192, 13, 0.3);
+}
+
+.status-message.error {
+    color: #ffd6da;
+    background: rgba(232, 58, 73, 0.14);
+    border: 1px solid rgba(232, 58, 73, 0.28);
+}
+
+.glow-orb-1 {
+    background: radial-gradient(circle, rgba(53, 64, 147, 0.22), transparent 70%);
+}
+
+.glow-orb-2 {
+    background: radial-gradient(circle, rgba(243, 146, 27, 0.16), transparent 70%);
+}
+
+.glow-orb-3 {
+    background: radial-gradient(circle, rgba(232, 58, 73, 0.12), transparent 70%);
+}
+
+@keyframes pulse {
+    from {
+        filter: drop-shadow(0 0 18px rgba(243, 146, 27, 0.25));
+    }
+    to {
+        filter: drop-shadow(0 0 28px rgba(252, 192, 13, 0.45));
+    }
+}
+.logo-voyager {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
 }

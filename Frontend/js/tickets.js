@@ -28,15 +28,15 @@ async function loadModalsHtml() {
     const modales = [
         {
             contenedorId: "contenedorModalTicket",
-            ruta: "./components/modal-add-ticket.html"
+            ruta: "./components/Tickets/modal-add-ticket.html"
         },
         {
             contenedorId: "contenedorModalVerTicket",
-            ruta: "./components/modal-view-ticket.html"
+            ruta: "./components/Tickets/modal-view-ticket.html"
         },
         {
             contenedorId: "contenedorModalEditarTicket",
-            ruta: "./components/modal-edit-ticket.html"
+            ruta: "./components/Tickets/modal-edit-ticket.html"
         }
     ];
 

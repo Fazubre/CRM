@@ -1,0 +1,93 @@
+<div class="modal fade" id="modalEditEmployee" tabindex="-1" aria-labelledby="modalEditEmployeeLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="formEditEmployee">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEditEmployeeLabel">Editar employee</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="editEmployeeId">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="editNombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="editNombre" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editCorreo" class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="editCorreo" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editGoogleId" class="form-label">Google ID</label>
+                            <input type="text" class="form-control" id="editGoogleId">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editFotoUrl" class="form-label">Foto URL</label>
+                            <input type="text" class="form-control" id="editFotoUrl">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editRol" class="form-label">Rol</label>
+                            <select class="form-select" id="editRol">
+                                <option value="employee">Employee</option>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editActivo" class="form-label">Estado</label>
+                            <select class="form-select" id="editActivo">
+                                <option value="true">Activo</option>
+                                <option value="false">Inactivo</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editCorreoVerificado" class="form-label">Correo verificado</label>
+                            <select class="form-select" id="editCorreoVerificado">
+                                <option value="true">Sí</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editCalendarHabilitado" class="form-label">Google Calendar habilitado</label>
+                            <select class="form-select" id="editCalendarHabilitado">
+                                <option value="false">No</option>
+                                <option value="true">Sí</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editCalendarId" class="form-label">Calendar ID</label>
+                            <input type="text" class="form-control" id="editCalendarId" placeholder="primary">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editTimezone" class="form-label">Timezone</label>
+                            <input type="text" class="form-control" id="editTimezone" placeholder="America/Costa_Rica">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="editGoogleRefreshToken" class="form-label">Google Refresh Token</label>
+                            <input type="text" class="form-control" id="editGoogleRefreshToken" placeholder="Se usará después para Calendar">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnActualizarEmployee">
+                        Actualizar employee
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
