@@ -17,25 +17,34 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="titulo" class="form-label">Título</label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="titulo"
-                                name="titulo"
-                                maxlength="120"
-                                placeholder="Ingrese el título del ticket"
-                                required>
+                            <input type="text" class="form-control" id="titulo" name="titulo" maxlength="120" required>
                             <div class="invalid-feedback">Debe ingresar el título.</div>
                         </div>
 
                         <div class="col-12">
                             <label for="descripcion" class="form-label">Descripción</label>
-                            <textarea
-                                class="form-control"
-                                id="descripcion"
-                                name="descripcion"
-                                rows="4"
-                                placeholder="Describa el problema o solicitud"></textarea>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="4"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="clienteAsignado" class="form-label">Cliente</label>
+                            <select class="form-select" id="clienteAsignado" name="clienteAsignado">
+                                <option value="">Seleccione un cliente</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="areaAsignada" class="form-label">Área</label>
+                            <select class="form-select" id="areaAsignada" name="areaAsignada">
+                                <option value="">Seleccione un área</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="empleadoAsignado" class="form-label">Empleado asignado</label>
+                            <select class="form-select" id="empleadoAsignado" name="empleadoAsignado">
+                                <option value="">Seleccione un empleado</option>
+                            </select>
                         </div>
 
                         <div class="col-md-6">
@@ -49,20 +58,14 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="fechaVencimiento" class="form-label">Fecha de vencimiento</label>
-                            <input
-                                type="date"
-                                class="form-control"
-                                id="fechaVencimiento"
-                                name="fechaVencimiento">
+                            <label for="fechaVencimiento" class="form-label">Fecha límite</label>
+                            <input type="date" class="form-control" id="fechaVencimiento" name="fechaVencimiento">
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary" id="btnGuardarTicket">
                         <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Ticket
                     </button>

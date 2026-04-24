@@ -168,7 +168,14 @@ async function getAllEmployees() {
         .orderBy("fecha_creacion", "desc")
         .get();
 
-    return snapshot.docs.map((doc) => doc.data());
+    return snapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        return {
+            id: doc.id,
+            ...data
+        };
+    });
 }
 
 async function getEmployeeById(employeeId) {
@@ -179,9 +186,11 @@ async function getEmployeeById(employeeId) {
         throw new Error("El employee no existe.");
     }
 
-    return documento.data();
+    return {
+        id: documento.id,
+        ...documento.data()
+    };
 }
-
 async function getEmployeeByGoogleId(googleId) {
     const snapshot = await coleccionEmployees
         .where("google_id", "==", String(googleId).trim())
@@ -192,7 +201,12 @@ async function getEmployeeByGoogleId(googleId) {
         return null;
     }
 
-    return snapshot.docs[0].data();
+    const doc = snapshot.docs[0];
+
+    return {
+        id: doc.id,
+        ...doc.data()
+    };
 }
 
 async function getEmployeeByEmail(correo) {
@@ -205,7 +219,12 @@ async function getEmployeeByEmail(correo) {
         return null;
     }
 
-    return snapshot.docs[0].data();
+    const doc = snapshot.docs[0];
+
+    return {
+        id: doc.id,
+        ...doc.data()
+    };
 }
 
 async function syncEmployeeFromGoogle(datosGoogle) {

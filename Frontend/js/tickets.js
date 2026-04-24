@@ -1,10 +1,17 @@
 const TICKETS_URL = "http://localhost:3000/tickets";
+const EMPLEADOS_URL = "http://localhost:3000/employees";
+const CLIENTES_URL = "http://localhost:3000/clients";
+const AREAS_URL = "http://localhost:3000/areas";
 
 let mensajeTablaVacia = "No hay tickets registrados.";
 let modalAgregarTicket = null;
 let modalVerTicket = null;
 let modalEditarTicket = null;
+
 let ticketsCache = [];
+let empleadosCache = [];
+let clientesCache = [];
+let areasCache = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -12,6 +19,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         initializeModals();
         loadUserData();
         setupEvents();
+        setupFormChangeEvents();
+
+        await loadEmployees();
+        await loadClients();
+        await loadAreas();
         await loadTickets();
     } catch (error) {
         console.error("Error inicializando la vista de tickets:", error);
@@ -117,6 +129,9 @@ function setupEvents() {
 
     if (btnRecargarTickets) {
         btnRecargarTickets.addEventListener("click", async () => {
+            await loadEmployees();
+            await loadClients();
+            await loadAreas();
             await loadTickets();
         });
     }
@@ -168,6 +183,161 @@ function setupEvents() {
     });
 }
 
+function setupFormChangeEvents() {
+    const campos = [
+        "titulo",
+        "clienteAsignado",
+        "areaAsignada",
+        "empleadoAsignado",
+        "fechaVencimiento",
+        "editarTitulo",
+        "editarClienteAsignado",
+        "editarAreaAsignada",
+        "editarEmpleadoAsignado",
+        "editarFechaVencimiento"
+    ];
+
+    campos.forEach((id) => {
+        const campo = document.getElementById(id);
+
+        if (!campo) return;
+
+        campo.addEventListener("input", () => {
+            hideFormAlert();
+            hideEditFormAlert();
+        });
+
+        campo.addEventListener("change", () => {
+            hideFormAlert();
+            hideEditFormAlert();
+        });
+    });
+}
+
+async function loadEmployees() {
+    try {
+        const response = await fetch(EMPLEADOS_URL);
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            throw new Error(data.mensaje || "No fue posible obtener los empleados.");
+        }
+
+        empleadosCache = data.employees || data.empleados || [];
+        fillEmployeeSelects();
+    } catch (error) {
+        console.error("Error cargando empleados:", error);
+        empleadosCache = [];
+        fillEmployeeSelects();
+    }
+}
+
+async function loadClients() {
+    try {
+        const response = await fetch(CLIENTES_URL);
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            throw new Error(data.mensaje || "No fue posible obtener los clientes.");
+        }
+
+        clientesCache = data.clients || data.clientes || [];
+        fillClientSelects();
+    } catch (error) {
+        console.error("Error cargando clientes:", error);
+        clientesCache = [];
+        fillClientSelects();
+    }
+}
+
+async function loadAreas() {
+    try {
+        const response = await fetch(AREAS_URL);
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            throw new Error(data.mensaje || "No fue posible obtener las áreas.");
+        }
+
+        areasCache = data.areas || data.areasData || [];
+        fillAreaSelects();
+    } catch (error) {
+        console.error("Error cargando áreas:", error);
+        areasCache = [];
+        fillAreaSelects();
+    }
+}
+
+function fillEmployeeSelects() {
+    const selectAgregar = document.getElementById("empleadoAsignado");
+    const selectEditar = document.getElementById("editarEmpleadoAsignado");
+
+    const opciones = `
+        <option value="">Seleccione un empleado</option>
+        ${empleadosCache.map((empleado) => {
+            const id = empleado.id || empleado.employeeId || "";
+            const nombre = empleado.nombre || empleado.name || empleado.correo || empleado.email || "Empleado";
+
+            return `<option value="${escapeHtml(id)}">${escapeHtml(nombre)}</option>`;
+        }).join("")}
+    `;
+
+    if (selectAgregar) selectAgregar.innerHTML = opciones;
+    if (selectEditar) selectEditar.innerHTML = opciones;
+}
+
+function fillClientSelects() {
+    const selectAgregar = document.getElementById("clienteAsignado");
+    const selectEditar = document.getElementById("editarClienteAsignado");
+
+    const opciones = `
+        <option value="">Seleccione un cliente</option>
+        ${clientesCache.map((cliente) => {
+            const id = String(
+                cliente._cliente_id ||
+                cliente.id ||
+                cliente.clienteId ||
+                cliente.clientId ||
+                ""
+            );
+
+            const nombre = String(
+                cliente.nombre ||
+                cliente.name ||
+                cliente.clienteNombre ||
+                cliente.email ||
+                "Cliente"
+            );
+
+            return `
+                <option value="${escapeHtml(id)}" data-cliente-id="${escapeHtml(id)}" data-cliente-nombre="${escapeHtml(nombre)}">
+                    ${escapeHtml(nombre)}
+                </option>
+            `;
+        }).join("")}
+    `;
+
+    if (selectAgregar) selectAgregar.innerHTML = opciones;
+    if (selectEditar) selectEditar.innerHTML = opciones;
+}
+function fillAreaSelects() {
+    const selectAgregar = document.getElementById("areaAsignada");
+    const selectEditar = document.getElementById("editarAreaAsignada");
+
+    const opciones = `
+        <option value="">Seleccione un área</option>
+        ${areasCache.map((area) => {
+            const id = area.id || area.areaId || "";
+            const nombre = area.nombre || area.name || area.areaName || "Área";
+
+            return `<option value="${escapeHtml(id)}">${escapeHtml(nombre)}</option>`;
+        }).join("")}
+    `;
+
+    if (selectAgregar) selectAgregar.innerHTML = opciones;
+    if (selectEditar) selectEditar.innerHTML = opciones;
+}
+
 function findTicketById(id) {
     return ticketsCache.find((ticket) => String(ticket.id) === String(id)) || null;
 }
@@ -175,6 +345,10 @@ function findTicketById(id) {
 function openTicketModal() {
     resetTicketForm();
     setUsuarioIdActual();
+
+    fillEmployeeSelects();
+    fillClientSelects();
+    fillAreaSelects();
 
     if (modalAgregarTicket) {
         modalAgregarTicket.show();
@@ -190,6 +364,9 @@ function openViewTicketModal(ticket) {
 }
 
 function openEditTicketModal(ticket) {
+    fillEmployeeSelects();
+    fillClientSelects();
+    fillAreaSelects();
     fillEditTicketForm(ticket);
 
     if (modalEditarTicket) {
@@ -203,15 +380,16 @@ function fillViewTicketModal(ticket) {
     setTextValue("verTitulo", ticket.titulo || "-");
 
     const descripcion = document.getElementById("verDescripcion");
+
     if (descripcion) {
         descripcion.value = ticket.descripcion || "Sin descripción";
     }
 
-    setTextValue("verPrioridad", capitalizeText(ticket.prioridad || "media"));
-    setTextValue("verVencimiento", formatDate(ticket.expirationDate));
     setTextValue("verCliente", ticket.clienteNombre || "No asignado");
-    setTextValue("verEmpresa", ticket.empresaNombre || "No asignada");
-    setTextValue("verArea", ticket.areaName || "No asignada");
+    setTextValue("verArea", ticket.areaName || ticket.areaNombre || "No asignada");
+    setTextValue("verEmpleadoAsignado", getEmployeeName(ticket));
+    setTextValue("verPrioridad", capitalizeText(ticket.prioridad || "media"));
+    setTextValue("verVencimiento", formatDate(ticket.expirationDate || ticket.fechaVencimiento));
     setTextValue("verCreadoPor", ticket.usuarioNombre || "Usuario");
     setTextValue("verFechaCreacion", formatDateTime(ticket.createdAt));
     setTextValue("verFechaActualizacion", formatDateTime(ticket.updatedAt));
@@ -223,22 +401,34 @@ function fillEditTicketForm(ticket) {
     const estadoInput = document.getElementById("editarEstado");
     const tituloInput = document.getElementById("editarTitulo");
     const descripcionInput = document.getElementById("editarDescripcion");
+    const clienteInput = document.getElementById("editarClienteAsignado");
+    const areaInput = document.getElementById("editarAreaAsignada");
+    const empleadoInput = document.getElementById("editarEmpleadoAsignado");
     const prioridadInput = document.getElementById("editarPrioridad");
     const fechaInput = document.getElementById("editarFechaVencimiento");
 
     if (idInput) idInput.value = ticket.id || "";
     if (numeroInput) numeroInput.value = ticket.numeroTicket || "";
+
     if (estadoInput) {
         estadoInput.value = ticket.isCompleted ? "completado" : "abierto";
     }
+
     if (tituloInput) tituloInput.value = ticket.titulo || "";
     if (descripcionInput) descripcionInput.value = ticket.descripcion || "";
+    if (clienteInput) clienteInput.value = ticket.clienteId || "";
+    if (areaInput) areaInput.value = ticket.areaId || "";
+    if (empleadoInput) empleadoInput.value = ticket.empleadoId || ticket.employeeId || "";
     if (prioridadInput) prioridadInput.value = ticket.prioridad || "media";
-    if (fechaInput) fechaInput.value = formatDateForInput(ticket.expirationDate);
+
+    if (fechaInput) {
+        fechaInput.value = formatDateForInput(ticket.expirationDate || ticket.fechaVencimiento);
+    }
 
     hideEditFormAlert();
 
     const form = document.getElementById("formEditarTicket");
+
     if (form) {
         form.classList.remove("was-validated");
     }
@@ -258,6 +448,10 @@ function resetTicketForm() {
         alerta.textContent = "";
     }
 
+    setSelectValue("empleadoAsignado", "");
+    setSelectValue("clienteAsignado", "");
+    setSelectValue("areaAsignada", "");
+
     setUsuarioIdActual();
 }
 
@@ -274,10 +468,15 @@ function resetEditTicketForm() {
         alerta.classList.add("d-none");
         alerta.textContent = "";
     }
+
+    setSelectValue("editarEmpleadoAsignado", "");
+    setSelectValue("editarClienteAsignado", "");
+    setSelectValue("editarAreaAsignada", "");
 }
 
 function setUsuarioIdActual() {
     const inputUsuarioId = document.getElementById("usuarioId");
+
     if (!inputUsuarioId) return;
 
     inputUsuarioId.value = getUsuarioIdActual();
@@ -315,11 +514,25 @@ async function submitTicketForm() {
     const payload = buildTicketPayload();
 
     if (!payload.titulo) {
-        form.classList.add("was-validated");
-        showFormAlert("Debe ingresar el título del ticket.");
+    form.classList.add("was-validated");
+    showFormAlert("Debe ingresar el título del ticket.");
+    return;
+    }
+
+    if (!payload.clienteId) {
+        showFormAlert("Debe seleccionar un cliente.");
         return;
     }
 
+    if (!payload.areaId) {
+        showFormAlert("Debe seleccionar un área.");
+        return;
+    }
+
+    if (!payload.empleadoId) {
+        showFormAlert("Debe asignar un empleado.");
+        return;
+    }
     try {
         btnGuardar.disabled = true;
         btnGuardar.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...`;
@@ -379,7 +592,20 @@ async function submitEditTicketForm() {
         showEditFormAlert("Debe ingresar el título del ticket.");
         return;
     }
+    if (!payload.clienteId) {
+    showEditFormAlert("Debe seleccionar un cliente.");
+    return;
+    }
 
+    if (!payload.areaId) {
+        showEditFormAlert("Debe seleccionar un área.");
+        return;
+    }
+
+    if (!payload.empleadoId) {
+        showEditFormAlert("Debe asignar un empleado.");
+        return;
+    }
     try {
         btnActualizar.disabled = true;
         btnActualizar.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...`;
@@ -421,28 +647,61 @@ async function submitEditTicketForm() {
 function buildTicketPayload() {
     const usuario = getUsuarioActual();
 
+    const empleadoId = document.getElementById("empleadoAsignado")?.value.trim() || "";
+
+    const clienteSelect = document.getElementById("clienteAsignado");
+    const clienteOption = clienteSelect?.options[clienteSelect.selectedIndex];
+
+    const clienteId =
+        clienteSelect?.value.trim() ||
+        clienteOption?.dataset.clienteId ||
+        "";
+
+    const clienteNombre =
+        clienteOption?.dataset.clienteNombre ||
+        getClientNameById(clienteId);
+
+    const areaId = document.getElementById("areaAsignada")?.value.trim() || "";
+
     return {
         usuarioId: document.getElementById("usuarioId")?.value.trim() || "",
         usuarioNombre: usuario?.nombre || usuario?.correo || "Usuario",
         titulo: document.getElementById("titulo")?.value.trim() || "",
         descripcion: document.getElementById("descripcion")?.value.trim() || "",
         prioridad: document.getElementById("prioridad")?.value || "media",
-        fechaVencimiento: document.getElementById("fechaVencimiento")?.value || null
+        fechaVencimiento: document.getElementById("fechaVencimiento")?.value || null,
+        empleadoId,
+        empleadoNombre: getEmployeeNameById(empleadoId),
+        clienteId,
+        clienteNombre,
+        areaId,
+        areaName: getAreaNameById(areaId)
     };
 }
 
 function buildEditTicketPayload() {
+    const empleadoId = document.getElementById("editarEmpleadoAsignado")?.value.trim() || "";
+    const clienteId = document.getElementById("editarClienteAsignado")?.value.trim() || "";
+    const areaId = document.getElementById("editarAreaAsignada")?.value.trim() || "";
+
     return {
         titulo: document.getElementById("editarTitulo")?.value.trim() || "",
         descripcion: document.getElementById("editarDescripcion")?.value.trim() || "",
         prioridad: document.getElementById("editarPrioridad")?.value || "media",
         estado: document.getElementById("editarEstado")?.value || "abierto",
-        fechaVencimiento: document.getElementById("editarFechaVencimiento")?.value || null
+        fechaVencimiento: document.getElementById("editarFechaVencimiento")?.value || null,
+        empleadoId,
+        empleadoNombre: getEmployeeNameById(empleadoId),
+        clienteId,
+        clienteNombre: getClientNameById(clienteId),
+        areaId,
+        areaName: getAreaNameById(areaId)
     };
 }
 
 function showFormAlert(message) {
     const alerta = document.getElementById("alertaFormularioTicket");
+
     if (!alerta) return;
 
     alerta.textContent = message;
@@ -451,6 +710,7 @@ function showFormAlert(message) {
 
 function hideFormAlert() {
     const alerta = document.getElementById("alertaFormularioTicket");
+
     if (!alerta) return;
 
     alerta.textContent = "";
@@ -459,6 +719,7 @@ function hideFormAlert() {
 
 function showEditFormAlert(message) {
     const alerta = document.getElementById("alertaFormularioEditarTicket");
+
     if (!alerta) return;
 
     alerta.textContent = message;
@@ -467,6 +728,7 @@ function showEditFormAlert(message) {
 
 function hideEditFormAlert() {
     const alerta = document.getElementById("alertaFormularioEditarTicket");
+
     if (!alerta) return;
 
     alerta.textContent = "";
@@ -525,11 +787,11 @@ function renderTickets(tickets) {
             <td>${escapeHtml(ticket.numeroTicket || "")}</td>
             <td>${escapeHtml(ticket.titulo || "")}</td>
             <td>${escapeHtml(ticket.clienteNombre || "No asignado")}</td>
-            <td>${escapeHtml(ticket.empresaNombre || "No asignada")}</td>
-            <td>${escapeHtml(ticket.areaName || "No asignada")}</td>
+            <td>${escapeHtml(ticket.areaName || ticket.areaNombre || "No asignada")}</td>
+            <td>${escapeHtml(getEmployeeName(ticket))}</td>
             <td>${renderEstado(ticket)}</td>
             <td>${renderPrioridad(ticket.prioridad)}</td>
-            <td>${formatDate(ticket.expirationDate)}</td>
+            <td>${formatDate(ticket.expirationDate || ticket.fechaVencimiento)}</td>
             <td>
                 <div class="btn-group btn-group-sm" role="group">
                     <button
@@ -598,6 +860,72 @@ function renderPrioridad(prioridad) {
     return `<span class="badge ${clase} text-uppercase">${escapeHtml(valor)}</span>`;
 }
 
+function getEmployeeName(ticket) {
+    if (ticket.empleadoNombre) return ticket.empleadoNombre;
+    if (ticket.employeeName) return ticket.employeeName;
+
+    const empleadoId =
+        ticket.empleadoId ||
+        ticket.employeeId ||
+        ticket.assignedEmployeeId ||
+        "";
+
+    if (!empleadoId) return "No asignado";
+
+    return getEmployeeNameById(empleadoId);
+}
+
+function getEmployeeNameById(empleadoId) {
+    if (!empleadoId) return "No asignado";
+
+    const empleado = empleadosCache.find((item) => {
+        const id = item.id || item.employeeId || "";
+        return String(id) === String(empleadoId);
+    });
+
+    if (!empleado) return "No asignado";
+
+    return empleado.nombre || empleado.name || empleado.correo || empleado.email || "Empleado";
+}
+
+function getClientNameById(clienteId) {
+    if (!clienteId) return "No asignado";
+
+    const cliente = clientesCache.find((item) => {
+        const id = String(
+            item._cliente_id ||
+            item.id ||
+            item.clienteId ||
+            item.clientId ||
+            ""
+        );
+
+        return id === String(clienteId);
+    });
+
+    if (!cliente) return "No asignado";
+
+    return (
+        cliente.nombre ||
+        cliente.name ||
+        cliente.clienteNombre ||
+        cliente.email ||
+        "Cliente"
+    );
+}
+function getAreaNameById(areaId) {
+    if (!areaId) return "No asignada";
+
+    const area = areasCache.find((item) => {
+        const id = item.id || item.areaId || "";
+        return String(id) === String(areaId);
+    });
+
+    if (!area) return "No asignada";
+
+    return area.nombre || area.name || area.areaName || "Área";
+}
+
 function parseDateValue(valor) {
     if (!valor) return null;
 
@@ -605,6 +933,8 @@ function parseDateValue(valor) {
 
     if (typeof valor === "object" && typeof valor.seconds === "number") {
         fecha = new Date(valor.seconds * 1000);
+    } else if (typeof valor === "object" && typeof valor._seconds === "number") {
+        fecha = new Date(valor._seconds * 1000);
     } else if (valor instanceof Date) {
         fecha = valor;
     } else {
@@ -648,9 +978,18 @@ function formatDateForInput(valor) {
 
 function setTextValue(id, value) {
     const element = document.getElementById(id);
+
     if (!element) return;
 
     element.textContent = value || "-";
+}
+
+function setSelectValue(id, value) {
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    element.value = value || "";
 }
 
 function capitalizeText(text) {

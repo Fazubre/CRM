@@ -13,7 +13,8 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "seed:firestore": "node src/SeedFirestore.js"
+    "seed:firestore": "node src/SeedFirestore.js",
+    "seed:areas": "node src/SeedAreas.js"
 
   }
 }

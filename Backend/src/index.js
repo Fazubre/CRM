@@ -7,9 +7,10 @@ const googleLoginRouter = require("../services/GoogleLogIn");
 const ticketRoutes = require("../routes/Ticket.route");
 const clientRoutes = require("../routes/Client.route");
 const employeeRoutes = require("../routes/Employee.route");
+const areaRoutes = require("../routes/Area.route");
 
 const app = express();
-
+    
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../../Frontend")));
@@ -41,6 +42,8 @@ app.use("/tickets", ticketRoutes);
 app.use("/employees", employeeRoutes);
 
 app.use("/clients", clientRoutes);
+
+app.use("/areas", areaRoutes);
 
 const PORT = process.env.PORT || 3000;
 

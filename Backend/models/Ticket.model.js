@@ -16,7 +16,13 @@ async function createTicket(datosTicket) {
         titulo,
         descripcion = "",
         prioridad = "media",
-        fechaVencimiento = null
+        fechaVencimiento = null,
+        empleadoId = "",
+        empleadoNombre = "No asignado",
+        clienteId = "",
+        clienteNombre = "No asignado",
+        areaId = "",
+        areaName = "No asignada"
     } = datosTicket;
 
     const contadorRef = db.collection("counters").doc("tickets");
@@ -33,29 +39,28 @@ async function createTicket(datosTicket) {
 
         const ticketNuevo = {
             numeroTicket,
-            userCreatorId: String(usuarioId || ""),
-            areaId: "",
-            estadoTicketId: "1",
-            creationTime: FieldValue.serverTimestamp(),
-            expirationDate: fechaVencimiento ? new Date(fechaVencimiento) : null,
-            isCompleted: false,
-            clienteId: "",
-            empresaId: "",
+            usuarioId: String(usuarioId || ""),
+            usuarioNombre: usuarioNombre || "Usuario",
             titulo: titulo.trim(),
             descripcion: descripcion.trim(),
             prioridad: String(prioridad || "media").toLowerCase(),
-            snapshots: {
-                usuarioNombre: usuarioNombre || "Usuario",
-                areaName: "No asignada",
-                clienteNombre: "No asignado",
-                empresaNombre: "No asignada",
-                estadoNombre: "Abierto"
-            },
+            fechaVencimiento: fechaVencimiento || null,
+            expirationDate: fechaVencimiento ? new Date(fechaVencimiento) : null,
+            empleadoId: String(empleadoId || ""),
+            empleadoNombre: empleadoId ? empleadoNombre : "No asignado",
+            clienteId: String(clienteId || ""),
+            clienteNombre: clienteId ? clienteNombre : "No asignado",
+            areaId: String(areaId || ""),
+            areaName: areaId ? areaName : "No asignada",
+            estadoTicketId: "1",
+            estadoNombre: "Abierto",
+            isCompleted: false,
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp()
         };
 
         transaction.set(ticketRef, ticketNuevo);
+
         transaction.set(
             contadorRef,
             {
@@ -79,9 +84,7 @@ async function updateTicket(ticketId, datosTicket) {
         throw new Error("Falta el id del ticket.");
     }
 
-    if (!datosTicket.titulo || !datosTicket.titulo.trim()) {
-        throw new Error("Falta el campo requerido: titulo");
-    }
+    validateTicketData(datosTicket);
 
     const ticketRef = db.collection("tickets").doc(ticketId);
     const ticketSnap = await ticketRef.get();
@@ -95,39 +98,37 @@ async function updateTicket(ticketId, datosTicket) {
     const estadoNombre = isCompleted ? "Completado" : "Abierto";
     const estadoTicketId = isCompleted ? "2" : "1";
 
+    const empleadoId = String(datosTicket.empleadoId || "");
+    const clienteId = String(datosTicket.clienteId || "");
+    const areaId = String(datosTicket.areaId || "");
+
     const datosActualizar = {
         titulo: datosTicket.titulo.trim(),
         descripcion: (datosTicket.descripcion || "").trim(),
         prioridad: String(datosTicket.prioridad || "media").toLowerCase(),
+        fechaVencimiento: datosTicket.fechaVencimiento || null,
         expirationDate: datosTicket.fechaVencimiento ? new Date(datosTicket.fechaVencimiento) : null,
+
+        empleadoId,
+        empleadoNombre: empleadoId ? datosTicket.empleadoNombre || "Empleado" : "No asignado",
+
+        clienteId,
+        clienteNombre: clienteId ? datosTicket.clienteNombre || "Cliente" : "No asignado",
+
+        areaId,
+        areaName: areaId ? datosTicket.areaName || "Área" : "No asignada",
+
         estadoTicketId,
+        estadoNombre,
         isCompleted,
-        "snapshots.estadoNombre": estadoNombre,
         updatedAt: FieldValue.serverTimestamp()
     };
 
     await ticketRef.update(datosActualizar);
 
     const ticketActualizadoSnap = await ticketRef.get();
-    const data = ticketActualizadoSnap.data();
 
-    return {
-        id: ticketActualizadoSnap.id,
-        numeroTicket: data.numeroTicket || "",
-        titulo: data.titulo || "",
-        descripcion: data.descripcion || "",
-        prioridad: data.prioridad || "media",
-        estadoTicketId: data.estadoTicketId || "",
-        estadoNombre: data.snapshots?.estadoNombre || "",
-        clienteNombre: data.snapshots?.clienteNombre || "",
-        empresaNombre: data.snapshots?.empresaNombre || "",
-        areaName: data.snapshots?.areaName || "",
-        usuarioNombre: data.snapshots?.usuarioNombre || "",
-        isCompleted: data.isCompleted || false,
-        createdAt: data.createdAt || null,
-        updatedAt: data.updatedAt || null,
-        expirationDate: data.expirationDate || null
-    };
+    return mapTicket(ticketActualizadoSnap.id, ticketActualizadoSnap.data());
 }
 
 async function getAllTickets() {
@@ -137,26 +138,33 @@ async function getAllTickets() {
         .get();
 
     return snapshot.docs.map((doc) => {
-        const data = doc.data();
-
-        return {
-            id: doc.id,
-            numeroTicket: data.numeroTicket || "",
-            titulo: data.titulo || "",
-            descripcion: data.descripcion || "",
-            prioridad: data.prioridad || "media",
-            estadoTicketId: data.estadoTicketId || "",
-            estadoNombre: data.snapshots?.estadoNombre || "",
-            clienteNombre: data.snapshots?.clienteNombre || "",
-            empresaNombre: data.snapshots?.empresaNombre || "",
-            areaName: data.snapshots?.areaName || "",
-            usuarioNombre: data.snapshots?.usuarioNombre || "",
-            isCompleted: data.isCompleted || false,
-            createdAt: data.createdAt || null,
-            expirationDate: data.expirationDate || null,
-            updatedAt: data.updatedAt || null
-        };
+        return mapTicket(doc.id, doc.data());
     });
+}
+
+function mapTicket(id, data) {
+    return {
+        id,
+        numeroTicket: data.numeroTicket || "",
+        usuarioId: data.usuarioId || data.userCreatorId || "",
+        usuarioNombre: data.usuarioNombre || data.snapshots?.usuarioNombre || "Usuario",
+        titulo: data.titulo || "",
+        descripcion: data.descripcion || "",
+        prioridad: data.prioridad || "media",
+        fechaVencimiento: data.fechaVencimiento || null,
+        expirationDate: data.expirationDate || null,
+        empleadoId: data.empleadoId || data.assignedEmployeeId || "",
+        empleadoNombre: data.empleadoNombre || data.snapshots?.empleadoNombre || "No asignado",
+        clienteId: data.clienteId || "",
+        clienteNombre: data.clienteNombre || data.snapshots?.clienteNombre || "No asignado",
+        areaId: data.areaId || "",
+        areaName: data.areaName || data.snapshots?.areaName || "No asignada",
+        estadoTicketId: data.estadoTicketId || "",
+        estadoNombre: data.estadoNombre || data.snapshots?.estadoNombre || "Abierto",
+        isCompleted: data.isCompleted || false,
+        createdAt: data.createdAt || null,
+        updatedAt: data.updatedAt || null
+    };
 }
 
 module.exports = {

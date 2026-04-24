@@ -26,27 +26,38 @@
                                 <option value="abierto">Abierto</option>
                                 <option value="completado">Completado</option>
                             </select>
-                        </div>      
+                        </div>
 
                         <div class="col-12">
                             <label for="editarTitulo" class="form-label">Título</label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="editarTitulo"
-                                name="editarTitulo"
-                                maxlength="120"
-                                required>
+                            <input type="text" class="form-control" id="editarTitulo" name="editarTitulo" maxlength="120" required>
                             <div class="invalid-feedback">Debe ingresar el título.</div>
                         </div>
 
                         <div class="col-12">
                             <label for="editarDescripcion" class="form-label">Descripción</label>
-                            <textarea
-                                class="form-control"
-                                id="editarDescripcion"
-                                name="editarDescripcion"
-                                rows="5"></textarea>
+                            <textarea class="form-control" id="editarDescripcion" name="editarDescripcion" rows="5"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarClienteAsignado" class="form-label">Cliente</label>
+                            <select class="form-select" id="editarClienteAsignado" name="editarClienteAsignado">
+                                <option value="">Seleccione un cliente</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarAreaAsignada" class="form-label">Área</label>
+                            <select class="form-select" id="editarAreaAsignada" name="editarAreaAsignada">
+                                <option value="">Seleccione un área</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editarEmpleadoAsignado" class="form-label">Empleado asignado</label>
+                            <select class="form-select" id="editarEmpleadoAsignado" name="editarEmpleadoAsignado">
+                                <option value="">Seleccione un empleado</option>
+                            </select>
                         </div>
 
                         <div class="col-md-6">
@@ -60,12 +71,8 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="editarFechaVencimiento" class="form-label">Fecha de vencimiento</label>
-                            <input
-                                type="date"
-                                class="form-control"
-                                id="editarFechaVencimiento"
-                                name="editarFechaVencimiento">
+                            <label for="editarFechaVencimiento" class="form-label">Fecha límite</label>
+                            <input type="date" class="form-control" id="editarFechaVencimiento" name="editarFechaVencimiento">
                         </div>
                     </div>
                 </div>

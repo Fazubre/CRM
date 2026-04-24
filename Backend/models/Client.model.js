@@ -127,13 +127,19 @@ async function createClient(datos) {
 
     return clienteNuevo;
 }
-
 async function getAllClients() {
     const snapshot = await coleccionClientes
         .orderBy("fecha_creacion", "desc")
         .get();
 
-    return snapshot.docs.map((doc) => doc.data());
+    return snapshot.docs.map((doc) => {
+        const data = doc.data();
+
+        return {
+            id: doc.id, 
+            ...data
+        };
+    });
 }
 
 async function getClientById(clienteId) {
@@ -144,7 +150,10 @@ async function getClientById(clienteId) {
         throw new Error("El cliente no existe.");
     }
 
-    return documento.data();
+    return {
+        id: documento.id,
+        ...documento.data()
+    };
 }
 
 async function updateClient(clienteId, datos) {
