@@ -2,14 +2,15 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
+const app = express();
 
 const googleLoginRouter = require("../services/GoogleLogIn");
 const ticketRoutes = require("../routes/Ticket.route");
 const clientRoutes = require("../routes/Client.route");
 const employeeRoutes = require("../routes/Employee.route");
 const areaRoutes = require("../routes/Area.route");
+const calendarRoutes = require("../routes/Calendar.route");
 
-const app = express();
     
 app.use(cors());
 app.use(express.json());
@@ -44,6 +45,8 @@ app.use("/employees", employeeRoutes);
 app.use("/clients", clientRoutes);
 
 app.use("/areas", areaRoutes);
+
+app.use("/calendar", calendarRoutes);
 
 const PORT = process.env.PORT || 3000;
 
