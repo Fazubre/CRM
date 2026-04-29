@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:3000";
+const BACKEND_URL = "https://crm-hyb1.onrender.com";
 
 window.addEventListener("load", async () => {
     configurarEstadoInicial();

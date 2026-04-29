@@ -1,4 +1,6 @@
-const TICKETS_URL = "http://localhost:3000/tickets";
+const API_BASE_URL = "https://crm-hyb1.onrender.com";
+
+const TICKETS_URL = `${API_BASE_URL}/tickets`;
 
 document.addEventListener("DOMContentLoaded", () => {
     loadUserData();
