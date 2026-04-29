@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:3000";
+const BACKEND_URL = "https://crm-hyb1.onrender.com";
 const GOOGLE_CLIENT_ID = "326785422522-ctg73hai4vun8otcr21qke46mqrtul7q.apps.googleusercontent.com";
 
 let usuarioActual = null;

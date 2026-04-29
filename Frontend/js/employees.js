@@ -1,4 +1,6 @@
-const API_URL = "http://localhost:3000/employees";
+const API_BASE_URL = "https://crm-hyb1.onrender.com";
+const API_URL = `${API_BASE_URL}/employees`;
+
 
 let tablaEmployees = null;
 let modalAddEmployee = null;

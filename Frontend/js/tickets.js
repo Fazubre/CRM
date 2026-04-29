@@ -1,7 +1,9 @@
-const TICKETS_URL = "http://localhost:3000/tickets";
-const EMPLEADOS_URL = "http://localhost:3000/employees";
-const CLIENTES_URL = "http://localhost:3000/clients";
-const AREAS_URL = "http://localhost:3000/areas";
+const API_BASE_URL = "https://crm-hyb1.onrender.com";
+
+const TICKETS_URL = `${API_BASE_URL}/tickets`;
+const EMPLEADOS_URL = `${API_BASE_URL}/employees`;
+const CLIENTES_URL = `${API_BASE_URL}/clients`;
+const AREAS_URL = `${API_BASE_URL}/areas`;
 
 let mensajeTablaVacia = "No hay tickets registrados.";
 let modalAgregarTicket = null;
