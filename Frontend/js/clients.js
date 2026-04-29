@@ -1,4 +1,6 @@
-    const CLIENTS_URL = "http://localhost:3000/clients";
+const API_BASE_URL = "https://crm-hyb1.onrender.com";
+
+const CLIENTS_URL = `${API_BASE_URL}/clients`;
 
     let mensajeTablaVacia = "No hay clientes registrados.";
     let modalAgregarCliente = null;
