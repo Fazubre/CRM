@@ -1,5 +1,5 @@
 const BACKEND_URL = "http://localhost:3000";
-const GOOGLE_CLIENT_ID = "21029114151-53vkio01ja74ahtm8nahaca2nr5bep4g.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "326785422522-ctg73hai4vun8otcr21qke46mqrtul7q.apps.googleusercontent.com";
 
 let usuarioActual = null;
 let googleInicializado = false;
