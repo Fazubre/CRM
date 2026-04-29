@@ -54,14 +54,28 @@
                             <div class="invalid-feedback">Debe ingresar un correo válido.</div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label for="editarClienteCodigoArea" class="form-label">Código de área</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarClienteCodigoArea"
+                                maxlength="4"
+                                inputmode="numeric"
+                                pattern="[0-9]{1,4}"
+                                required>
+                        </div>
+
+                        <div class="col-md-8">
                             <label for="editarClienteTelefono" class="form-label">Teléfono</label>
                             <input
                                 type="text"
                                 class="form-control"
                                 id="editarClienteTelefono"
-                                name="editarClienteTelefono"
-                                maxlength="30">
+                                maxlength="8"
+                                inputmode="numeric"
+                                pattern="[0-9]{8}"
+                                required>
                         </div>
 
                         <div class="col-md-6">
