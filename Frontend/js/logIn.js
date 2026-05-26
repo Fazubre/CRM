@@ -1,5 +1,5 @@
-const BACKEND_URL = "https://crm-hyb1.onrender.com";
-const GOOGLE_CLIENT_ID = "326785422522-ctg73hai4vun8otcr21qke46mqrtul7q.apps.googleusercontent.com";
+const BACKEND_URL = "https://crm-c40k.onrender.com/";
+const GOOGLE_CLIENT_ID = "64465891129-emdh94uqe8ta21gh2uki74bqs03c9sss.apps.googleusercontent.com";
 
 let usuarioActual = null;
 let googleInicializado = false;
