@@ -1,4 +1,4 @@
-const BACKEND_URL = "https://crm-c40k.onrender.com/";
+const BACKEND_URL = "https://crm-c40k.onrender.com";
 const GOOGLE_CLIENT_ID = "64465891129-emdh94uqe8ta21gh2uki74bqs03c9sss.apps.googleusercontent.com";
 
 let usuarioActual = null;
@@ -126,6 +126,15 @@ async function handleGoogleResponse(response) {
                 credential: response.credential
             })
         });
+
+        const contentType = respuestaBackend.headers.get("content-type");
+
+        if (!contentType || !contentType.includes("application/json")) {
+            const texto = await respuestaBackend.text();
+            console.error("Respuesta no JSON del backend:", texto);
+
+            throw new Error("El backend no devolvió JSON. Revisa la ruta /auth/google en Render.");
+        }
 
         const data = await respuestaBackend.json();
 
