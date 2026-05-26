@@ -1,4 +1,4 @@
-import { db } from "../services/Firebase.js";
+const { db } = require("../services/Firebase");
 
 async function seedFirestore() {
     const batch = db.batch();
