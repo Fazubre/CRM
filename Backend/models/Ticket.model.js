@@ -19,7 +19,11 @@ function validateTicketData(datosTicket) {
 }
 
 async function createTicket(datosTicket) {
+    console.log("TICKET MODEL VERSION: 2026-06-07-V2");
+    console.log("datosTicket recibido en modelo:", datosTicket);
+
     validateTicketData(datosTicket);
+
 
     const {
         usuarioId = "",
