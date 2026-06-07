@@ -10,11 +10,13 @@ const clientRoutes = require("../routes/Client.route");
 const employeeRoutes = require("../routes/Employee.route");
 const areaRoutes = require("../routes/Area.route");
 const calendarRoutes = require("../routes/Calendar.route");
+const driveRoutes = require("../routes/Drive.route");
 
     
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../../Frontend")));
+app.use("/drive", driveRoutes);
 
 app.get("/", (req, res) => {
     res.redirect("/Views/LogIn.html");

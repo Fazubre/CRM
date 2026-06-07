@@ -2,5 +2,9 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "cd Backend && node src/index.js"
+  },
+  "dependencies": {
+    "googleapis": "^172.0.0",
+    "multer": "^2.1.1"
   }
 }
