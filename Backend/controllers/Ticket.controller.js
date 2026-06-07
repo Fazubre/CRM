@@ -1,94 +1,42 @@
-const { createTicket, getAllTickets, updateTicket } = require("../models/Ticket.model");
-const { db } = require("../services/Firebase");
-const { crearEventoTicket } = require("../services/GoogleCalendar");
-
-async function intentarCrearEventoCalendar(ticket) {
-    try {
-        if (!ticket.empleadoId || !ticket.fechaVencimiento) {
-            return {
-                creado: false,
-                mensaje: "El ticket no tiene empleado o fecha de vencimiento."
-            };
-        }
-
-        const empleadoDoc = await db
-            .collection("employees")
-            .doc(ticket.empleadoId)
-            .get();
-
-        if (!empleadoDoc.exists) {
-            return {
-                creado: false,
-                mensaje: "El empleado no existe en Firestore."
-            };
-        }
-
-        const empleado = empleadoDoc.data();
-
-        if (
-            !empleado.google_calendar ||
-            !empleado.google_calendar.conectado ||
-            !empleado.google_calendar.refresh_token
-        ) {
-            return {
-                creado: false,
-                mensaje: "El empleado no tiene Google Calendar conectado."
-            };
-        }
-
-        const evento = await crearEventoTicket({
-            refreshToken: empleado.google_calendar.refresh_token,
-            titulo: ticket.titulo,
-            descripcion: ticket.descripcion,
-            fechaVencimiento: ticket.fechaVencimiento,
-            correoEmpleado: empleado.google_correo || empleado.correo
-        });
-
-        await db.collection("tickets").doc(ticket.id).update({
-            google_calendar_event_id: evento.id,
-            google_calendar_link: evento.htmlLink || "",
-            google_calendar_creado: true,
-            google_calendar_error: ""
-        });
-
-        return {
-            creado: true,
-            evento
-        };
-    } catch (error) {
-        console.error("Error al crear evento en Google Calendar:", error);
-
-        if (ticket.id) {
-            await db.collection("tickets").doc(ticket.id).update({
-                google_calendar_creado: false,
-                google_calendar_error: error.message || "Error desconocido en Google Calendar."
-            });
-        }
-
-        return {
-            creado: false,
-            mensaje: error.message
-        };
-    }
-}
+const {
+    createTicket,
+    getAllTickets,
+    updateTicket
+} = require("../models/Ticket.model");
 
 async function postTicket(req, res) {
     try {
-        const ticketNuevo = await createTicket(req.body);
+        console.log("Datos recibidos:", req.body);
+        console.log("Archivo recibido:", req.file);
 
-        const resultadoCalendar = await intentarCrearEventoCalendar(ticketNuevo);
+        const datosTicket = {
+            usuarioId: req.body?.usuarioId || "",
+            usuarioNombre: req.body?.usuarioNombre || "Usuario",
+
+            titulo: req.body?.titulo || "",
+            descripcion: req.body?.descripcion || "",
+            prioridad: req.body?.prioridad || "media",
+            fechaVencimiento: req.body?.fechaVencimiento || null,
+
+            empleadoId: req.body?.empleadoId || "",
+            empleadoNombre: req.body?.empleadoNombre || "No asignado",
+
+            clienteId: req.body?.clienteId || "",
+            clienteNombre: req.body?.clienteNombre || "No asignado",
+
+            areaId: req.body?.areaId || "",
+            areaName: req.body?.areaName || "No asignada"
+        };
+
+        const ticketCreado = await createTicket(datosTicket);
 
         return res.status(201).json({
             ok: true,
             mensaje: "Ticket creado correctamente.",
-            ticket: {
-                ...ticketNuevo,
-                google_calendar_creado: resultadoCalendar.creado,
-                google_calendar_mensaje: resultadoCalendar.mensaje || ""
-            }
+            ticket: ticketCreado
         });
     } catch (error) {
-        console.error("Error al crear ticket:", error);
+        console.error("Error creando ticket:", error);
 
         return res.status(400).json({
             ok: false,
@@ -106,18 +54,40 @@ async function getTickets(req, res) {
             tickets
         });
     } catch (error) {
-        console.error("Error al obtener tickets:", error);
+        console.error("Error obteniendo tickets:", error);
 
         return res.status(500).json({
             ok: false,
-            mensaje: "No fue posible obtener los tickets."
+            mensaje: error.message || "No fue posible obtener los tickets."
         });
     }
 }
 
 async function putTicket(req, res) {
     try {
-        const ticketActualizado = await updateTicket(req.params.id, req.body);
+        const { id } = req.params;
+
+        const datosTicket = {
+            titulo: req.body?.titulo || "",
+            descripcion: req.body?.descripcion || "",
+            prioridad: req.body?.prioridad || "media",
+            estado: req.body?.estado || "abierto",
+            fechaVencimiento: req.body?.fechaVencimiento || null,
+
+            empleadoId: req.body?.empleadoId || "",
+            empleadoNombre: req.body?.empleadoNombre || "No asignado",
+
+            clienteId: req.body?.clienteId || "",
+            clienteNombre: req.body?.clienteNombre || "No asignado",
+
+            areaId: req.body?.areaId || "",
+            areaName: req.body?.areaName || "No asignada"
+        };
+
+        const ticketActualizado = await updateTicket(
+            id,
+            datosTicket
+        );
 
         return res.status(200).json({
             ok: true,
@@ -125,7 +95,7 @@ async function putTicket(req, res) {
             ticket: ticketActualizado
         });
     } catch (error) {
-        console.error("Error al actualizar ticket:", error);
+        console.error("Error actualizando ticket:", error);
 
         return res.status(400).json({
             ok: false,

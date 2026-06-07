@@ -2,8 +2,19 @@ const { FieldValue } = require("firebase-admin/firestore");
 const { db } = require("../services/Firebase");
 
 function validateTicketData(datosTicket) {
-    if (!datosTicket.titulo || !datosTicket.titulo.trim()) {
-        throw new Error("Falta el campo requerido: titulo");
+    if (!datosTicket || typeof datosTicket !== "object") {
+        throw new Error(
+            "No se recibieron los datos del ticket."
+        );
+    }
+
+    if (
+        typeof datosTicket.titulo !== "string" ||
+        !datosTicket.titulo.trim()
+    ) {
+        throw new Error(
+            "Falta el campo requerido: titulo"
+        );
     }
 }
 
