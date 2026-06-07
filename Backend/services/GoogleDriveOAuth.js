@@ -61,6 +61,17 @@ async function uploadTicketFileWithOAuth(archivo, refreshToken) {
         throw new Error("No existe refresh_token para subir archivos a Google Drive");
     }
 
+    console.log("GOOGLE DRIVE UPLOAD VERSION: 2026-06-07-DEBUG-V1");
+
+    console.log("Datos del archivo antes de subir:", {
+        originalname: archivo.originalname,
+        mimetype: archivo.mimetype,
+        size: archivo.size,
+        path: archivo.path
+    });
+
+    console.log("Folder ID usado:", GOOGLE_DRIVE_FOLDER_ID);
+
     const oauth2Client = createOAuthClient();
 
     oauth2Client.setCredentials({
@@ -84,26 +95,42 @@ async function uploadTicketFileWithOAuth(archivo, refreshToken) {
         body: fs.createReadStream(archivo.path)
     };
 
-    const respuesta = await drive.files.create({
-        requestBody: metadataArchivo,
-        media,
-        fields: "id, name, webViewLink, webContentLink"
-    });
+    try {
+        const respuesta = await drive.files.create({
+            requestBody: metadataArchivo,
+            media,
+            fields: "id, name, webViewLink, webContentLink",
+            supportsAllDrives: true
+        });
 
-    await drive.permissions.create({
-        fileId: respuesta.data.id,
-        requestBody: {
-            role: "reader",
-            type: "anyone"
+        console.log("Archivo creado en Drive:", respuesta.data);
+
+        await drive.permissions.create({
+            fileId: respuesta.data.id,
+            requestBody: {
+                role: "reader",
+                type: "anyone"
+            },
+            supportsAllDrives: true
+        });
+
+        console.log("Permiso público agregado al archivo:", respuesta.data.id);
+
+        return {
+            id: respuesta.data.id,
+            nombre: respuesta.data.name,
+            webViewLink: respuesta.data.webViewLink,
+            webContentLink: respuesta.data.webContentLink
+        };
+    } catch (error) {
+        console.error("Error real subiendo archivo a Drive:", error.message);
+
+        if (error.response?.data) {
+            console.error("Detalle de Google Drive:", JSON.stringify(error.response.data, null, 2));
         }
-    });
 
-    return {
-        id: respuesta.data.id,
-        nombre: respuesta.data.name,
-        webViewLink: respuesta.data.webViewLink,
-        webContentLink: respuesta.data.webContentLink
-    };
+        throw error;
+    }
 }
 
 module.exports = {

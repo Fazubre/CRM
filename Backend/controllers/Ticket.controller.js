@@ -1,40 +1,72 @@
+const fs = require("fs/promises");
+
 const {
     createTicket,
     getAllTickets,
     updateTicket
 } = require("../models/Ticket.model");
 
-function getBaseUrl(req) {
-    return process.env.PUBLIC_BACKEND_URL || `${req.protocol}://${req.get("host")}`;
+const {
+    uploadTicketFileWithOAuth
+} = require("../services/GoogleDriveOAuth");
+
+async function eliminarArchivoTemporal(archivo) {
+    if (!archivo?.path) return;
+
+    try {
+        await fs.unlink(archivo.path);
+    } catch (error) {
+        console.warn("No se pudo eliminar el archivo temporal:", error.message);
+    }
 }
 
-function construirArchivoAdjunto(req) {
+async function construirArchivoAdjuntoDrive(req) {
     if (!req.file) {
         return null;
     }
 
-    const baseUrl = getBaseUrl(req);
+    const refreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN;
+
+    if (!refreshToken) {
+        throw new Error("Falta GOOGLE_DRIVE_REFRESH_TOKEN en las variables de entorno.");
+    }
+
+    console.log("Subiendo archivo a Google Drive:", {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path
+    });
+
+    const archivoDrive = await uploadTicketFileWithOAuth(
+        req.file,
+        refreshToken
+    );
+
+    await eliminarArchivoTemporal(req.file);
 
     return {
-        nombre: req.file.originalname,
-        nombreGuardado: req.file.filename,
+        id: archivoDrive.id,
+        googleDriveId: archivoDrive.id,
+        nombre: archivoDrive.nombre,
         tipo: req.file.mimetype,
         tamano: req.file.size,
-        ruta: req.file.path,
-        url: `${baseUrl}/uploads/${encodeURIComponent(req.file.filename)}`,
-        enlace: `${baseUrl}/uploads/${encodeURIComponent(req.file.filename)}`,
+        webViewLink: archivoDrive.webViewLink,
+        webContentLink: archivoDrive.webContentLink,
+        url: archivoDrive.webViewLink,
+        enlace: archivoDrive.webViewLink,
         fechaSubida: new Date().toISOString()
     };
 }
 
 async function postTicket(req, res) {
     try {
-        console.log("TICKET CONTROLLER VERSION: 2026-06-07-FILES-V1");
+        console.log("TICKET CONTROLLER VERSION: 2026-06-07-DRIVE-V1");
         console.log("Content-Type:", req.headers["content-type"]);
         console.log("Datos recibidos:", req.body);
         console.log("Archivo recibido:", req.file);
 
-        const archivoAdjunto = construirArchivoAdjunto(req);
+        const archivoAdjunto = await construirArchivoAdjuntoDrive(req);
 
         const datosTicket = {
             usuarioId: req.body?.usuarioId || "",
@@ -58,7 +90,7 @@ async function postTicket(req, res) {
 
         return res.status(201).json({
             ok: true,
-            version: "2026-06-07-FILES-V1",
+            version: "2026-06-07-DRIVE-V1",
             mensaje: "Ticket creado correctamente.",
             ticket: ticketCreado
         });
@@ -66,9 +98,11 @@ async function postTicket(req, res) {
         console.error("Error creando ticket:", error);
         console.error("Stack:", error.stack);
 
+        await eliminarArchivoTemporal(req.file);
+
         return res.status(400).json({
             ok: false,
-            version: "2026-06-07-FILES-V1",
+            version: "2026-06-07-DRIVE-V1",
             mensaje: error.message || "No fue posible crear el ticket."
         });
     }
@@ -94,13 +128,13 @@ async function getTickets(req, res) {
 
 async function putTicket(req, res) {
     try {
-        console.log("PUT TICKET CONTROLLER VERSION: 2026-06-07-FILES-V1");
+        console.log("PUT TICKET CONTROLLER VERSION: 2026-06-07-DRIVE-V1");
         console.log("Content-Type:", req.headers["content-type"]);
         console.log("Datos recibidos:", req.body);
         console.log("Archivo recibido:", req.file);
 
         const { id } = req.params;
-        const archivoAdjunto = construirArchivoAdjunto(req);
+        const archivoAdjunto = await construirArchivoAdjuntoDrive(req);
 
         const datosTicket = {
             titulo: req.body?.titulo || "",
@@ -128,16 +162,19 @@ async function putTicket(req, res) {
 
         return res.status(200).json({
             ok: true,
-            version: "2026-06-07-FILES-V1",
+            version: "2026-06-07-DRIVE-V1",
             mensaje: "Ticket actualizado correctamente.",
             ticket: ticketActualizado
         });
     } catch (error) {
         console.error("Error actualizando ticket:", error);
+        console.error("Stack:", error.stack);
+
+        await eliminarArchivoTemporal(req.file);
 
         return res.status(400).json({
             ok: false,
-            version: "2026-06-07-FILES-V1",
+            version: "2026-06-07-DRIVE-V1",
             mensaje: error.message || "No fue posible actualizar el ticket."
         });
     }
