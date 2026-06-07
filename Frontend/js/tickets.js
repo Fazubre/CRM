@@ -15,6 +15,19 @@ let empleadosCache = [];
 let clientesCache = [];
 let areasCache = [];
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+const ALLOWED_FILE_TYPES = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "image/png",
+    "image/jpeg",
+    "text/plain"
+];
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await loadModalsHtml();
@@ -192,11 +205,13 @@ function setupFormChangeEvents() {
         "areaAsignada",
         "empleadoAsignado",
         "fechaVencimiento",
+        "archivoAdjunto",
         "editarTitulo",
         "editarClienteAsignado",
         "editarAreaAsignada",
         "editarEmpleadoAsignado",
-        "editarFechaVencimiento"
+        "editarFechaVencimiento",
+        "editarArchivoAdjunto"
     ];
 
     campos.forEach((id) => {
@@ -207,11 +222,13 @@ function setupFormChangeEvents() {
         campo.addEventListener("input", () => {
             hideFormAlert();
             hideEditFormAlert();
+            campo.classList.remove("is-invalid");
         });
 
         campo.addEventListener("change", () => {
             hideFormAlert();
             hideEditFormAlert();
+            campo.classList.remove("is-invalid");
         });
     });
 }
@@ -376,6 +393,65 @@ function openEditTicketModal(ticket) {
     }
 }
 
+function fillEditTicketFile(ticket) {
+    const archivoDisponible = document.getElementById(
+        "editarArchivoDisponible"
+    );
+
+    const archivoSinAdjunto = document.getElementById(
+        "editarArchivoSinAdjunto"
+    );
+
+    const archivoNombre = document.getElementById(
+        "editarArchivoActualNombre"
+    );
+
+    const archivoTipo = document.getElementById(
+        "editarArchivoActualTipo"
+    );
+
+    const archivoEnlace = document.getElementById(
+        "editarArchivoActualEnlace"
+    );
+
+    const archivoInput = document.getElementById(
+        "editarArchivoAdjunto"
+    );
+
+    if (archivoInput) {
+        archivoInput.value = "";
+        archivoInput.classList.remove("is-invalid");
+    }
+
+    const archivo = getTicketFile(ticket);
+
+    if (!archivo || !archivo.enlace) {
+        archivoDisponible?.classList.add("d-none");
+        archivoSinAdjunto?.classList.remove("d-none");
+
+        if (archivoEnlace) {
+            archivoEnlace.removeAttribute("href");
+        }
+
+        return;
+    }
+
+    archivoDisponible?.classList.remove("d-none");
+    archivoSinAdjunto?.classList.add("d-none");
+
+    if (archivoNombre) {
+        archivoNombre.textContent = archivo.nombre;
+    }
+
+    if (archivoTipo) {
+        archivoTipo.textContent = archivo.tipo;
+    }
+
+    if (archivoEnlace) {
+        archivoEnlace.href = archivo.enlace;
+    }
+}
+
 function fillViewTicketModal(ticket) {
     setTextValue("verNumeroTicket", ticket.numeroTicket || "-");
     setTextValue("verEstado", ticket.estadoNombre || (ticket.isCompleted ? "Completado" : "Abierto"));
@@ -395,6 +471,7 @@ function fillViewTicketModal(ticket) {
     setTextValue("verCreadoPor", ticket.usuarioNombre || "Usuario");
     setTextValue("verFechaCreacion", formatDateTime(ticket.createdAt));
     setTextValue("verFechaActualizacion", formatDateTime(ticket.updatedAt));
+    fillViewTicketFile(ticket);
 }
 
 function fillEditTicketForm(ticket) {
@@ -426,6 +503,7 @@ function fillEditTicketForm(ticket) {
     if (fechaInput) {
         fechaInput.value = formatDateForInput(ticket.expirationDate || ticket.fechaVencimiento);
     }
+    fillEditTicketFile(ticket);
 
     hideEditFormAlert();
 
@@ -439,10 +517,16 @@ function fillEditTicketForm(ticket) {
 function resetTicketForm() {
     const form = document.getElementById("formAgregarTicket");
     const alerta = document.getElementById("alertaFormularioTicket");
+    const archivoInput = document.getElementById("archivoAdjunto");
 
     if (form) {
         form.reset();
         form.classList.remove("was-validated");
+    }
+
+    if (archivoInput) {
+        archivoInput.value = "";
+        archivoInput.classList.remove("is-invalid");
     }
 
     if (alerta) {
@@ -459,11 +543,47 @@ function resetTicketForm() {
 
 function resetEditTicketForm() {
     const form = document.getElementById("formEditarTicket");
-    const alerta = document.getElementById("alertaFormularioEditarTicket");
+
+    const alerta = document.getElementById(
+        "alertaFormularioEditarTicket"
+    );
+
+    const archivoInput = document.getElementById(
+        "editarArchivoAdjunto"
+    );
+
+    const archivoDisponible = document.getElementById(
+        "editarArchivoDisponible"
+    );
+
+    const archivoSinAdjunto = document.getElementById(
+        "editarArchivoSinAdjunto"
+    );
+
+    const enlaceArchivo = document.getElementById(
+        "editarArchivoActualEnlace"
+    );
 
     if (form) {
         form.reset();
         form.classList.remove("was-validated");
+    }
+
+    if (archivoInput) {
+        archivoInput.value = "";
+        archivoInput.classList.remove("is-invalid");
+    }
+
+    if (archivoDisponible) {
+        archivoDisponible.classList.add("d-none");
+    }
+
+    if (archivoSinAdjunto) {
+        archivoSinAdjunto.classList.remove("d-none");
+    }
+
+    if (enlaceArchivo) {
+        enlaceArchivo.removeAttribute("href");
     }
 
     if (alerta) {
@@ -474,6 +594,108 @@ function resetEditTicketForm() {
     setSelectValue("editarEmpleadoAsignado", "");
     setSelectValue("editarClienteAsignado", "");
     setSelectValue("editarAreaAsignada", "");
+}
+
+function getTicketFile(ticket) {
+    if (!ticket) return null;
+
+    const archivo =
+        ticket.archivoAdjunto ||
+        ticket.archivo ||
+        ticket.attachment ||
+        ticket.file ||
+        null;
+
+    if (!archivo) {
+        return null;
+    }
+
+    if (typeof archivo === "string") {
+        return {
+            id: "",
+            nombre: "Archivo adjunto",
+            tipo: "",
+            enlace: archivo
+        };
+    }
+
+    return {
+        id:
+            archivo.id ||
+            archivo.fileId ||
+            archivo.googleDriveId ||
+            "",
+
+        nombre:
+            archivo.nombre ||
+            archivo.name ||
+            archivo.originalName ||
+            archivo.originalname ||
+            "Archivo adjunto",
+
+        tipo:
+            archivo.tipo ||
+            archivo.mimeType ||
+            archivo.mimetype ||
+            "Archivo de Google Drive",
+
+        enlace:
+            archivo.webViewLink ||
+            archivo.enlaceVisualizacion ||
+            archivo.url ||
+            archivo.link ||
+            ""
+    };
+}
+
+function fillViewTicketFile(ticket) {
+    const archivoDisponible = document.getElementById(
+        "verArchivoDisponible"
+    );
+
+    const archivoSinAdjunto = document.getElementById(
+        "verArchivoSinAdjunto"
+    );
+
+    const archivoNombre = document.getElementById(
+        "verArchivoNombre"
+    );
+
+    const archivoTipo = document.getElementById(
+        "verArchivoTipo"
+    );
+
+    const archivoEnlace = document.getElementById(
+        "verArchivoEnlace"
+    );
+
+    const archivo = getTicketFile(ticket);
+
+    if (!archivo || !archivo.enlace) {
+        archivoDisponible?.classList.add("d-none");
+        archivoSinAdjunto?.classList.remove("d-none");
+
+        if (archivoEnlace) {
+            archivoEnlace.removeAttribute("href");
+        }
+
+        return;
+    }
+
+    archivoDisponible?.classList.remove("d-none");
+    archivoSinAdjunto?.classList.add("d-none");
+
+    if (archivoNombre) {
+        archivoNombre.textContent = archivo.nombre;
+    }
+
+    if (archivoTipo) {
+        archivoTipo.textContent = archivo.tipo;
+    }
+
+    if (archivoEnlace) {
+        archivoEnlace.href = archivo.enlace;
+    }
 }
 
 function setUsuarioIdActual() {
@@ -508,17 +730,18 @@ function getUsuarioIdActual() {
 async function submitTicketForm() {
     const form = document.getElementById("formAgregarTicket");
     const btnGuardar = document.getElementById("btnGuardarTicket");
+    const archivoInput = document.getElementById("archivoAdjunto");
 
     if (!form || !btnGuardar) return;
 
     hideFormAlert();
-
     const payload = buildTicketPayload();
+    const archivo = archivoInput?.files?.[0] || null;
 
     if (!payload.titulo) {
-    form.classList.add("was-validated");
-    showFormAlert("Debe ingresar el título del ticket.");
-    return;
+        form.classList.add("was-validated");
+        showFormAlert("Debe ingresar el título del ticket.");
+        return;
     }
 
     if (!payload.clienteId) {
@@ -535,22 +758,54 @@ async function submitTicketForm() {
         showFormAlert("Debe asignar un empleado.");
         return;
     }
+
+    const validacionArchivo = validateTicketFile(archivo);
+
+    if (!validacionArchivo.valido) {
+        archivoInput?.classList.add("is-invalid");
+        showFormAlert(validacionArchivo.mensaje);
+        return;
+    }
+
+    archivoInput?.classList.remove("is-invalid");
+
     try {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...`;
+        btnGuardar.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin me-2"></i>
+            Guardando...
+        `;
+
+        const formData = new FormData();
+
+        Object.entries(payload).forEach(([clave, valor]) => {
+            if (valor !== null && valor !== undefined) {
+                formData.append(clave, String(valor));
+            }
+        });
+
+        if (archivo) {
+            formData.append("archivo", archivo);
+        }
 
         const response = await fetch(TICKETS_URL, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
+            body: formData
         });
 
-        const data = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+
+        const data = contentType.includes("application/json")
+            ? await response.json()
+            : {
+                ok: false,
+                mensaje: await response.text()
+            };
 
         if (!response.ok || !data.ok) {
-            throw new Error(data.mensaje || "No fue posible crear el ticket.");
+            throw new Error(
+                data.mensaje || "No fue posible crear el ticket."
+            );
         }
 
         if (modalAgregarTicket) {
@@ -562,14 +817,22 @@ async function submitTicketForm() {
         Swal.fire({
             icon: "success",
             title: "Ticket creado",
-            text: "El ticket fue creado correctamente."
+            text: archivo
+                ? "El ticket y su archivo fueron guardados correctamente."
+                : "El ticket fue creado correctamente."
         });
     } catch (error) {
         console.error("Error creando ticket:", error);
-        showFormAlert(error.message || "No fue posible crear el ticket.");
+
+        showFormAlert(
+            error.message || "No fue posible crear el ticket."
+        );
     } finally {
         btnGuardar.disabled = false;
-        btnGuardar.innerHTML = `<i class="fa-solid fa-floppy-disk me-2"></i>Guardar Ticket`;
+        btnGuardar.innerHTML = `
+            <i class="fa-solid fa-floppy-disk me-2"></i>
+            Guardar Ticket
+        `;
     }
 }
 
@@ -577,7 +840,9 @@ async function submitEditTicketForm() {
     const form = document.getElementById("formEditarTicket");
     const btnActualizar = document.getElementById("btnActualizarTicket");
     const ticketId = document.getElementById("editarTicketId")?.value || "";
+    const archivoInput = document.getElementById("editarArchivoAdjunto");
 
+    const archivo = archivoInput?.files?.[0] || null;
     if (!form || !btnActualizar) return;
 
     hideEditFormAlert();
@@ -620,6 +885,16 @@ async function submitEditTicketForm() {
             body: JSON.stringify(payload)
         });
 
+        const validacionArchivo = validateTicketFile(archivo);
+
+        if (!validacionArchivo.valido) {
+            archivoInput?.classList.add("is-invalid");
+            showEditFormAlert(validacionArchivo.mensaje);
+            return;
+        }
+
+        archivoInput?.classList.remove("is-invalid");
+
         const data = await response.json();
 
         if (!response.ok || !data.ok) {
@@ -649,33 +924,66 @@ async function submitEditTicketForm() {
 function buildTicketPayload() {
     const usuario = getUsuarioActual();
 
-    const empleadoId = document.getElementById("empleadoAsignado")?.value.trim() || "";
+    const usuarioId =
+        document.getElementById("usuarioId")?.value.trim() || "";
 
-    const clienteSelect = document.getElementById("clienteAsignado");
-    const clienteOption = clienteSelect?.options[clienteSelect.selectedIndex];
+    const titulo =
+        document.getElementById("titulo")?.value.trim() || "";
+
+    const descripcion =
+        document.getElementById("descripcion")?.value.trim() || "";
+
+    const prioridad =
+        document.getElementById("prioridad")?.value || "media";
+
+    const fechaVencimiento =
+        document.getElementById("fechaVencimiento")?.value || "";
+
+    const empleadoSelect =
+        document.getElementById("empleadoAsignado");
+
+    const empleadoId =
+        empleadoSelect?.value.trim() || "";
+
+    const clienteSelect =
+        document.getElementById("clienteAsignado");
+
+    const clienteOption =
+        clienteSelect?.options?.[clienteSelect.selectedIndex];
 
     const clienteId =
         clienteSelect?.value.trim() ||
-        clienteOption?.dataset.clienteId ||
+        clienteOption?.dataset?.clienteId ||
         "";
 
     const clienteNombre =
-        clienteOption?.dataset.clienteNombre ||
+        clienteOption?.dataset?.clienteNombre ||
         getClientNameById(clienteId);
 
-    const areaId = document.getElementById("areaAsignada")?.value.trim() || "";
+    const areaSelect =
+        document.getElementById("areaAsignada");
+
+    const areaId =
+        areaSelect?.value.trim() || "";
 
     return {
-        usuarioId: document.getElementById("usuarioId")?.value.trim() || "",
-        usuarioNombre: usuario?.nombre || usuario?.correo || "Usuario",
-        titulo: document.getElementById("titulo")?.value.trim() || "",
-        descripcion: document.getElementById("descripcion")?.value.trim() || "",
-        prioridad: document.getElementById("prioridad")?.value || "media",
-        fechaVencimiento: document.getElementById("fechaVencimiento")?.value || null,
+        usuarioId,
+        usuarioNombre:
+            usuario?.nombre ||
+            usuario?.correo ||
+            "Usuario",
+
+        titulo,
+        descripcion,
+        prioridad,
+        fechaVencimiento,
+
         empleadoId,
         empleadoNombre: getEmployeeNameById(empleadoId),
+
         clienteId,
         clienteNombre,
+
         areaId,
         areaName: getAreaNameById(areaId)
     };
@@ -1009,4 +1317,32 @@ function escapeHtml(texto) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function validateTicketFile(archivo) {
+    if (!archivo) {
+        return {
+            valido: true,
+            mensaje: ""
+        };
+    }
+
+    if (archivo.size > MAX_FILE_SIZE) {
+        return {
+            valido: false,
+            mensaje: "El archivo no puede superar los 10 MB."
+        };
+    }
+
+    if (!ALLOWED_FILE_TYPES.includes(archivo.type)) {
+        return {
+            valido: false,
+            mensaje: "El formato del archivo seleccionado no está permitido."
+        };
+    }
+
+    return {
+        valido: true,
+        mensaje: ""
+    };
 }

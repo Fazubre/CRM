@@ -1,7 +1,7 @@
 <div class="modal fade" id="modalAgregarTicket" tabindex="-1" aria-labelledby="modalAgregarTicketLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <form id="formAgregarTicket" novalidate>
+            <form id="formAgregarTicket" enctype="multipart/form-data" novalidate>
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalAgregarTicketLabel">
                         <i class="fa-solid fa-ticket me-2"></i>Agregar Ticket
@@ -60,6 +60,21 @@
                         <div class="col-md-6">
                             <label for="fechaVencimiento" class="form-label">Fecha límite</label>
                             <input type="date" class="form-control" id="fechaVencimiento" name="fechaVencimiento">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="archivoAdjunto" class="form-label">Archivo adjunto</label>
+                            <input
+                                type="file"
+                                class="form-control"
+                                id="archivoAdjunto"
+                                name="archivo"
+                                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt"
+                            >
+                            <div class="form-text">
+                                Tamaño máximo permitido: 10 MB. Formatos: PDF, Word, Excel, imágenes y texto.
+                            </div>
+                            <div class="invalid-feedback">El archivo seleccionado no es válido.</div>
                         </div>
                     </div>
                 </div>

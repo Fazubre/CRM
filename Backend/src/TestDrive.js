@@ -1,21 +1,49 @@
 require("dotenv").config();
 
+const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 const express = require("express");
-const { uploadTicketFile } = require("../services/GoogleDrive");
+
+const {
+    uploadTicketFileWithOAuth
+} = require("../services/GoogleDriveOAuth");
 
 const app = express();
 
 const upload = multer({
-    dest: path.join(__dirname, "../uploads")
+    dest: path.join(__dirname, "../uploads"),
+    limits: {
+        fileSize: 10 * 1024 * 1024
+    }
 });
 
 app.post("/test-drive", upload.single("archivo"), async (req, res) => {
     try {
-        const archivoDrive = await uploadTicketFile(req.file);
+        if (!req.file) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "No se recibió ningún archivo"
+            });
+        }
 
-        return res.json({
+        const refreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN;
+
+        if (!refreshToken) {
+            return res.status(500).json({
+                ok: false,
+                mensaje: "Falta GOOGLE_DRIVE_REFRESH_TOKEN en el archivo .env"
+            });
+        }
+
+        console.log("Subiendo archivo mediante OAuth 2.0");
+
+        const archivoDrive = await uploadTicketFileWithOAuth(
+            req.file,
+            refreshToken
+        );
+
+        return res.status(201).json({
             ok: true,
             mensaje: "Archivo subido correctamente a Google Drive",
             archivo: archivoDrive
@@ -28,6 +56,10 @@ app.post("/test-drive", upload.single("archivo"), async (req, res) => {
             mensaje: "No fue posible subir el archivo a Google Drive",
             error: error.message
         });
+    } finally {
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
     }
 });
 

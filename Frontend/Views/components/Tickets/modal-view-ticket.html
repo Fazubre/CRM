@@ -30,6 +30,40 @@
                         <textarea class="form-control bg-light" id="verDescripcion" rows="5" readonly></textarea>
                     </div>
 
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Archivo adjunto</label>
+                        <div class="border rounded p-3 bg-light">
+                            <div id="verArchivoSinAdjunto" class="text-muted">
+                                Este ticket no tiene un archivo adjunto.
+                            </div>
+
+                            <div id="verArchivoDisponible" class="d-none">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 44px; height: 44px;">
+                                            <i class="fa-solid fa-paperclip"></i>
+                                        </span>
+
+                                        <div>
+                                            <div id="verArchivoNombre" class="fw-semibold">Archivo adjunto</div>
+                                            <small id="verArchivoTipo" class="text-muted">Archivo de Google Drive</small>
+                                        </div>
+                                    </div>
+
+                                    <a
+                                        id="verArchivoEnlace"
+                                        href="#"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="btn btn-outline-primary btn-sm"
+                                    >
+                                        <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Abrir archivo
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Cliente</label>
                         <div class="form-control bg-light" id="verCliente">-</div>
