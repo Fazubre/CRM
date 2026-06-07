@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://crm-hyb1.onrender.com";
+const API_BASE_URL = "https://crm-c40k.onrender.com";
 
 const CLIENTS_URL = `${API_BASE_URL}/clients`;
 
