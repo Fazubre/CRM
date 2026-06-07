@@ -1,5 +1,5 @@
 const BACKEND_URL = "https://crm-c40k.onrender.com";
-const GOOGLE_CLIENT_ID = "64465891129-emdh94uqe8ta21gh2uki74bqs03c9sss.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "578696786769-0sduvu0sni3fpjd258kg8grlm4ss2do8.apps.googleusercontent.com";
 
 let usuarioActual = null;
 let googleInicializado = false;
