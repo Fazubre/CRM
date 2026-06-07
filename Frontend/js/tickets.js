@@ -841,8 +841,8 @@ async function submitEditTicketForm() {
     const btnActualizar = document.getElementById("btnActualizarTicket");
     const ticketId = document.getElementById("editarTicketId")?.value || "";
     const archivoInput = document.getElementById("editarArchivoAdjunto");
-
     const archivo = archivoInput?.files?.[0] || null;
+
     if (!form || !btnActualizar) return;
 
     hideEditFormAlert();
@@ -859,9 +859,10 @@ async function submitEditTicketForm() {
         showEditFormAlert("Debe ingresar el título del ticket.");
         return;
     }
+
     if (!payload.clienteId) {
-    showEditFormAlert("Debe seleccionar un cliente.");
-    return;
+        showEditFormAlert("Debe seleccionar un cliente.");
+        return;
     }
 
     if (!payload.areaId) {
@@ -873,29 +874,46 @@ async function submitEditTicketForm() {
         showEditFormAlert("Debe asignar un empleado.");
         return;
     }
+
+    const validacionArchivo = validateTicketFile(archivo);
+
+    if (!validacionArchivo.valido) {
+        archivoInput?.classList.add("is-invalid");
+        showEditFormAlert(validacionArchivo.mensaje);
+        return;
+    }
+
+    archivoInput?.classList.remove("is-invalid");
+
     try {
         btnActualizar.disabled = true;
         btnActualizar.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i>Guardando...`;
 
-        const response = await fetch(`${TICKETS_URL}/${encodeURIComponent(ticketId)}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
+        const formData = new FormData();
+
+        Object.entries(payload).forEach(([clave, valor]) => {
+            if (valor !== null && valor !== undefined) {
+                formData.append(clave, String(valor));
+            }
         });
 
-        const validacionArchivo = validateTicketFile(archivo);
-
-        if (!validacionArchivo.valido) {
-            archivoInput?.classList.add("is-invalid");
-            showEditFormAlert(validacionArchivo.mensaje);
-            return;
+        if (archivo) {
+            formData.append("archivo", archivo);
         }
 
-        archivoInput?.classList.remove("is-invalid");
+        const response = await fetch(`${TICKETS_URL}/${encodeURIComponent(ticketId)}`, {
+            method: "PUT",
+            body: formData
+        });
 
-        const data = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+
+        const data = contentType.includes("application/json")
+            ? await response.json()
+            : {
+                ok: false,
+                mensaje: await response.text()
+            };
 
         if (!response.ok || !data.ok) {
             throw new Error(data.mensaje || "No fue posible actualizar el ticket.");
@@ -910,7 +928,9 @@ async function submitEditTicketForm() {
         Swal.fire({
             icon: "success",
             title: "Ticket actualizado",
-            text: "Los cambios fueron guardados correctamente."
+            text: archivo
+                ? "El ticket y el archivo fueron actualizados correctamente."
+                : "Los cambios fueron guardados correctamente."
         });
     } catch (error) {
         console.error("Error actualizando ticket:", error);
@@ -919,6 +939,26 @@ async function submitEditTicketForm() {
         btnActualizar.disabled = false;
         btnActualizar.innerHTML = `<i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cambios`;
     }
+}
+
+function renderArchivo(ticket) {
+    const archivo = getTicketFile(ticket);
+
+    if (!archivo || !archivo.enlace) {
+        return `<span class="text-muted">Sin archivo</span>`;
+    }
+
+    return `
+        <a
+            href="${escapeHtml(archivo.enlace)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-outline-secondary btn-sm"
+        >
+            <i class="fa-solid fa-paperclip me-1"></i>
+            Ver
+        </a>
+    `;
 }
 
 function buildTicketPayload() {
@@ -1092,34 +1132,35 @@ function renderTickets(tickets) {
     }
 
     tbody.innerHTML = tickets.map((ticket) => `
-        <tr>
-            <td>${escapeHtml(ticket.id || "")}</td>
-            <td>${escapeHtml(ticket.numeroTicket || "")}</td>
-            <td>${escapeHtml(ticket.titulo || "")}</td>
-            <td>${escapeHtml(ticket.clienteNombre || "No asignado")}</td>
-            <td>${escapeHtml(ticket.areaName || ticket.areaNombre || "No asignada")}</td>
-            <td>${escapeHtml(getEmployeeName(ticket))}</td>
-            <td>${renderEstado(ticket)}</td>
-            <td>${renderPrioridad(ticket.prioridad)}</td>
-            <td>${formatDate(ticket.expirationDate || ticket.fechaVencimiento)}</td>
-            <td>
-                <div class="btn-group btn-group-sm" role="group">
-                    <button
-                        type="button"
-                        class="btn btn-outline-info btn-ver-ticket"
-                        data-id="${escapeHtml(ticket.id || "")}">
-                        Ver
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-outline-warning btn-editar-ticket"
-                        data-id="${escapeHtml(ticket.id || "")}">
-                        Editar
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join("");
+    <tr>
+        <td>${escapeHtml(ticket.id || "")}</td>
+        <td>${escapeHtml(ticket.numeroTicket || "")}</td>
+        <td>${escapeHtml(ticket.titulo || "")}</td>
+        <td>${escapeHtml(ticket.clienteNombre || "No asignado")}</td>
+        <td>${escapeHtml(ticket.areaName || ticket.areaNombre || "No asignada")}</td>
+        <td>${escapeHtml(getEmployeeName(ticket))}</td>
+        <td>${renderEstado(ticket)}</td>
+        <td>${renderPrioridad(ticket.prioridad)}</td>
+        <td>${formatDate(ticket.expirationDate || ticket.fechaVencimiento)}</td>
+        <td>${renderArchivo(ticket)}</td>
+        <td>
+            <div class="btn-group btn-group-sm" role="group">
+                <button
+                    type="button"
+                    class="btn btn-outline-info btn-ver-ticket"
+                    data-id="${escapeHtml(ticket.id || "")}">
+                    Ver
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-outline-warning btn-editar-ticket"
+                    data-id="${escapeHtml(ticket.id || "")}">
+                    Editar
+                </button>
+            </div>
+        </td>
+    </tr>
+`).join("");
 }
 
 function destroyDataTable() {

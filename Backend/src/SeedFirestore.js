@@ -25,11 +25,6 @@ async function seedFirestore() {
         }
     ];
 
-    const areas = [
-        { id: "1", areaName: "Soporte" },
-        { id: "2", areaName: "Ventas" },
-        { id: "3", areaName: "Administración" }
-    ];
 
     const estadosTicket = [
         { id: "1", nombreEstado: "Abierto" },

@@ -25,7 +25,7 @@ async function createTicket(datosTicket) {
     validateTicketData(datosTicket);
 
 
-    const {
+        const {
         usuarioId = "",
         usuarioNombre = "Usuario",
         titulo,
@@ -37,8 +37,9 @@ async function createTicket(datosTicket) {
         clienteId = "",
         clienteNombre = "No asignado",
         areaId = "",
-        areaName = "No asignada"
-    } = datosTicket;
+        areaName = "No asignada",
+        archivoAdjunto = null
+        } = datosTicket;
 
     const contadorRef = db.collection("counters").doc("tickets");
     const ticketRef = db.collection("tickets").doc();
@@ -53,25 +54,26 @@ async function createTicket(datosTicket) {
         const numeroTicket = ultimoNumero + 1;
 
         const ticketNuevo = {
-            numeroTicket,
-            usuarioId: String(usuarioId || ""),
-            usuarioNombre: usuarioNombre || "Usuario",
-            titulo: titulo.trim(),
-            descripcion: descripcion.trim(),
-            prioridad: String(prioridad || "media").toLowerCase(),
-            fechaVencimiento: fechaVencimiento || null,
-            expirationDate: fechaVencimiento ? new Date(fechaVencimiento) : null,
-            empleadoId: String(empleadoId || ""),
-            empleadoNombre: empleadoId ? empleadoNombre : "No asignado",
-            clienteId: String(clienteId || ""),
-            clienteNombre: clienteId ? clienteNombre : "No asignado",
-            areaId: String(areaId || ""),
-            areaName: areaId ? areaName : "No asignada",
-            estadoTicketId: "1",
-            estadoNombre: "Abierto",
-            isCompleted: false,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp()
+        numeroTicket,
+        usuarioId: String(usuarioId || ""),
+        usuarioNombre: usuarioNombre || "Usuario",
+        titulo: titulo.trim(),
+        descripcion: descripcion.trim(),
+        prioridad: String(prioridad || "media").toLowerCase(),
+        fechaVencimiento: fechaVencimiento || null,
+        expirationDate: fechaVencimiento ? new Date(fechaVencimiento) : null,
+        empleadoId: String(empleadoId || ""),
+        empleadoNombre: empleadoId ? empleadoNombre : "No asignado",
+        clienteId: String(clienteId || ""),
+        clienteNombre: clienteId ? clienteNombre : "No asignado",
+        areaId: String(areaId || ""),
+        areaName: areaId ? areaName : "No asignada",
+        archivoAdjunto: archivoAdjunto || null,
+        estadoTicketId: "1",
+        estadoNombre: "Abierto",
+        isCompleted: false,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
         };
 
         transaction.set(ticketRef, ticketNuevo);
@@ -139,12 +141,16 @@ async function updateTicket(ticketId, datosTicket) {
         updatedAt: FieldValue.serverTimestamp()
     };
 
-    await ticketRef.update(datosActualizar);
+    if (datosTicket.archivoAdjunto) {
+        datosActualizar.archivoAdjunto = datosTicket.archivoAdjunto;
+    }
 
-    const ticketActualizadoSnap = await ticketRef.get();
+        await ticketRef.update(datosActualizar);
 
-    return mapTicket(ticketActualizadoSnap.id, ticketActualizadoSnap.data());
-}
+        const ticketActualizadoSnap = await ticketRef.get();
+
+        return mapTicket(ticketActualizadoSnap.id, ticketActualizadoSnap.data());
+    }
 
 async function getAllTickets() {
     const snapshot = await db
@@ -174,6 +180,7 @@ function mapTicket(id, data) {
         clienteNombre: data.clienteNombre || data.snapshots?.clienteNombre || "No asignado",
         areaId: data.areaId || "",
         areaName: data.areaName || data.snapshots?.areaName || "No asignada",
+        archivoAdjunto: data.archivoAdjunto || data.archivo || data.attachment || null,
         estadoTicketId: data.estadoTicketId || "",
         estadoNombre: data.estadoNombre || data.snapshots?.estadoNombre || "Abierto",
         isCompleted: data.isCompleted || false,

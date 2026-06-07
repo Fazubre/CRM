@@ -4,12 +4,37 @@ const {
     updateTicket
 } = require("../models/Ticket.model");
 
+function getBaseUrl(req) {
+    return process.env.PUBLIC_BACKEND_URL || `${req.protocol}://${req.get("host")}`;
+}
+
+function construirArchivoAdjunto(req) {
+    if (!req.file) {
+        return null;
+    }
+
+    const baseUrl = getBaseUrl(req);
+
+    return {
+        nombre: req.file.originalname,
+        nombreGuardado: req.file.filename,
+        tipo: req.file.mimetype,
+        tamano: req.file.size,
+        ruta: req.file.path,
+        url: `${baseUrl}/uploads/${encodeURIComponent(req.file.filename)}`,
+        enlace: `${baseUrl}/uploads/${encodeURIComponent(req.file.filename)}`,
+        fechaSubida: new Date().toISOString()
+    };
+}
+
 async function postTicket(req, res) {
     try {
-        console.log("TICKET CONTROLLER VERSION: 2026-06-07-V2");
+        console.log("TICKET CONTROLLER VERSION: 2026-06-07-FILES-V1");
         console.log("Content-Type:", req.headers["content-type"]);
         console.log("Datos recibidos:", req.body);
         console.log("Archivo recibido:", req.file);
+
+        const archivoAdjunto = construirArchivoAdjunto(req);
 
         const datosTicket = {
             usuarioId: req.body?.usuarioId || "",
@@ -23,7 +48,8 @@ async function postTicket(req, res) {
             clienteId: req.body?.clienteId || "",
             clienteNombre: req.body?.clienteNombre || "No asignado",
             areaId: req.body?.areaId || "",
-            areaName: req.body?.areaName || "No asignada"
+            areaName: req.body?.areaName || "No asignada",
+            archivoAdjunto
         };
 
         console.log("Objeto enviado al modelo:", datosTicket);
@@ -32,7 +58,7 @@ async function postTicket(req, res) {
 
         return res.status(201).json({
             ok: true,
-            version: "2026-06-07-V2",
+            version: "2026-06-07-FILES-V1",
             mensaje: "Ticket creado correctamente.",
             ticket: ticketCreado
         });
@@ -42,7 +68,7 @@ async function postTicket(req, res) {
 
         return res.status(400).json({
             ok: false,
-            version: "2026-06-07-V2",
+            version: "2026-06-07-FILES-V1",
             mensaje: error.message || "No fue posible crear el ticket."
         });
     }
@@ -68,7 +94,13 @@ async function getTickets(req, res) {
 
 async function putTicket(req, res) {
     try {
+        console.log("PUT TICKET CONTROLLER VERSION: 2026-06-07-FILES-V1");
+        console.log("Content-Type:", req.headers["content-type"]);
+        console.log("Datos recibidos:", req.body);
+        console.log("Archivo recibido:", req.file);
+
         const { id } = req.params;
+        const archivoAdjunto = construirArchivoAdjunto(req);
 
         const datosTicket = {
             titulo: req.body?.titulo || "",
@@ -84,7 +116,9 @@ async function putTicket(req, res) {
             clienteNombre: req.body?.clienteNombre || "No asignado",
 
             areaId: req.body?.areaId || "",
-            areaName: req.body?.areaName || "No asignada"
+            areaName: req.body?.areaName || "No asignada",
+
+            archivoAdjunto
         };
 
         const ticketActualizado = await updateTicket(
@@ -94,6 +128,7 @@ async function putTicket(req, res) {
 
         return res.status(200).json({
             ok: true,
+            version: "2026-06-07-FILES-V1",
             mensaje: "Ticket actualizado correctamente.",
             ticket: ticketActualizado
         });
@@ -102,6 +137,7 @@ async function putTicket(req, res) {
 
         return res.status(400).json({
             ok: false,
+            version: "2026-06-07-FILES-V1",
             mensaje: error.message || "No fue posible actualizar el ticket."
         });
     }

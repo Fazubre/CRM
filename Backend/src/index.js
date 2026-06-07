@@ -5,6 +5,9 @@ const path = require("path");
 require("dotenv").config();
 
 const app = express();
+app.set("trust proxy", 1);
+
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 const googleLoginRouter = require("../services/GoogleLogIn");
 const ticketRoutes = require("../routes/Ticket.route");

@@ -15,29 +15,15 @@ router.get("/", getTickets);
 
 router.post(
     "/",
-    (req, res, next) => {
-        uploadTicketFile.single("archivo")(req, res, (error) => {
-            if (error) {
-                return handleUploadError(error, req, res, next);
-            }
-
-            return next();
-        });
-    },
+    uploadTicketFile.single("archivo"),
+    handleUploadError,
     postTicket
 );
 
 router.put(
     "/:id",
-    (req, res, next) => {
-        uploadTicketFile.single("archivo")(req, res, (error) => {
-            if (error) {
-                return handleUploadError(error, req, res, next);
-            }
-
-            return next();
-        });
-    },
+    uploadTicketFile.single("archivo"),
+    handleUploadError,
     putTicket
 );
 
