@@ -132,9 +132,180 @@ async function uploadTicketFileWithOAuth(archivo, refreshToken) {
         throw error;
     }
 }
+function createDriveClient(refreshToken) {
+    if (!refreshToken) {
+        throw new Error(
+            "No existe refresh_token para utilizar Google Drive."
+        );
+    }
 
+    const oauth2Client = createOAuthClient();
+
+    oauth2Client.setCredentials({
+        refresh_token: refreshToken
+    });
+
+    return google.drive({
+        version: "v3",
+        auth: oauth2Client
+    });
+}
+
+async function createDriveFolder(drive, nombre, parentId) {
+    const response = await drive.files.create({
+        requestBody: {
+            name: nombre,
+            mimeType: "application/vnd.google-apps.folder",
+            parents: [parentId]
+        },
+        fields: "id, name, webViewLink",
+        supportsAllDrives: true
+    });
+
+    return response.data;
+}
+
+async function uploadFileToDriveFolder(
+    drive,
+    archivo,
+    parentId,
+    nombreArchivo
+) {
+    const response = await drive.files.create({
+        requestBody: {
+            name: nombreArchivo,
+            parents: [parentId]
+        },
+        media: {
+            mimeType: archivo.mimetype,
+            body: fs.createReadStream(archivo.path)
+        },
+        fields: "id, name, webViewLink, webContentLink",
+        supportsAllDrives: true
+    });
+
+    return response.data;
+}
+
+function normalizeRelativePath(ruta) {
+    return String(ruta || "")
+        .replaceAll("\\", "/")
+        .split("/")
+        .filter(Boolean);
+}
+
+async function uploadTicketFolderWithOAuth(
+    archivos,
+    rutasRelativas,
+    refreshToken
+) {
+    if (!Array.isArray(archivos) || archivos.length === 0) {
+        return null;
+    }
+
+    if (
+        !Array.isArray(rutasRelativas) ||
+        rutasRelativas.length !== archivos.length
+    ) {
+        throw new Error(
+            "Las rutas de la carpeta no coinciden con los archivos recibidos."
+        );
+    }
+
+    const drive = createDriveClient(refreshToken);
+
+    const primeraRuta = normalizeRelativePath(
+        rutasRelativas[0]
+    );
+
+    const nombreCarpetaOriginal =
+        primeraRuta.length > 1
+            ? primeraRuta[0]
+            : "Carpeta";
+
+    const nombreCarpetaDrive =
+        `${Date.now()}-${nombreCarpetaOriginal}`;
+
+    const carpetaRaiz = await createDriveFolder(
+        drive,
+        nombreCarpetaDrive,
+        GOOGLE_DRIVE_FOLDER_ID
+    );
+
+    const carpetasCreadas = new Map();
+
+    carpetasCreadas.set("", carpetaRaiz.id);
+
+    for (let indice = 0; indice < archivos.length; indice += 1) {
+        const archivo = archivos[indice];
+
+        const partesRuta = normalizeRelativePath(
+            rutasRelativas[indice]
+        );
+
+        const nombreArchivo =
+            partesRuta.pop() || archivo.originalname;
+
+        let directorios = partesRuta;
+
+        if (
+            directorios.length > 0 &&
+            directorios[0] === nombreCarpetaOriginal
+        ) {
+            directorios = directorios.slice(1);
+        }
+
+        let parentId = carpetaRaiz.id;
+        let rutaAcumulada = "";
+
+        for (const nombreDirectorio of directorios) {
+            rutaAcumulada = rutaAcumulada
+                ? `${rutaAcumulada}/${nombreDirectorio}`
+                : nombreDirectorio;
+
+            if (!carpetasCreadas.has(rutaAcumulada)) {
+                const carpetaCreada = await createDriveFolder(
+                    drive,
+                    nombreDirectorio,
+                    parentId
+                );
+
+                carpetasCreadas.set(
+                    rutaAcumulada,
+                    carpetaCreada.id
+                );
+            }
+
+            parentId = carpetasCreadas.get(rutaAcumulada);
+        }
+
+        await uploadFileToDriveFolder(
+            drive,
+            archivo,
+            parentId,
+            nombreArchivo
+        );
+    }
+
+    await drive.permissions.create({
+        fileId: carpetaRaiz.id,
+        requestBody: {
+            role: "reader",
+            type: "anyone"
+        },
+        supportsAllDrives: true
+    });
+
+    return {
+        id: carpetaRaiz.id,
+        nombre: carpetaRaiz.name,
+        webViewLink: carpetaRaiz.webViewLink,
+        cantidadArchivos: archivos.length
+    };
+}
 module.exports = {
     generateDriveAuthUrl,
     getTokensFromCode,
-    uploadTicketFileWithOAuth
+    uploadTicketFileWithOAuth,
+    uploadTicketFolderWithOAuth
 };

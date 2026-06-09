@@ -1,61 +1,283 @@
-<div class="modal fade" id="modalEditarTicket" tabindex="-1" aria-labelledby="modalEditarTicketLabel" aria-hidden="true">
+```html
+<div
+    class="modal fade"
+    id="modalEditarTicket"
+    tabindex="-1"
+    aria-labelledby="modalEditarTicketLabel"
+    aria-hidden="true"
+>
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <form id="formEditarTicket" enctype="multipart/form-data" novalidate>
+            <form
+                id="formEditarTicket"
+                enctype="multipart/form-data"
+                novalidate
+            >
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalEditarTicketLabel">
-                        <i class="fa-solid fa-pen-to-square me-2"></i>Editar Ticket
+                        <i class="fa-solid fa-pen-to-square me-2"></i>
+                        Editar Ticket
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar"
+                    ></button>
                 </div>
 
                 <div class="modal-body">
-                    <div id="alertaFormularioEditarTicket" class="alert alert-danger d-none" role="alert"></div>
+                    <div
+                        id="alertaFormularioEditarTicket"
+                        class="alert alert-danger d-none"
+                        role="alert"
+                    ></div>
 
-                    <input type="hidden" id="editarTicketId" name="editarTicketId">
+                    <input
+                        type="hidden"
+                        id="editarTicketId"
+                        name="editarTicketId"
+                    >
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Número de ticket</label>
-                            <input type="text" class="form-control" id="editarNumeroTicket" readonly>
+                            <label
+                                for="editarNumeroTicket"
+                                class="form-label"
+                            >
+                                Número de ticket
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarNumeroTicket"
+                                name="editarNumeroTicket"
+                                readonly
+                            >
                         </div>
 
                         <div class="col-md-6">
-                            <label for="editarEstado" class="form-label">Estado</label>
-                            <select class="form-select" id="editarEstado" name="editarEstado">
-                                <option value="abierto">Abierto</option>
-                                <option value="completado">Completado</option>
+                            <label
+                                for="editarEstado"
+                                class="form-label"
+                            >
+                                Estado
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="editarEstado"
+                                name="editarEstado"
+                            >
+                                <option value="abierto">
+                                    Abierto
+                                </option>
+
+                                <option value="completado">
+                                    Completado
+                                </option>
                             </select>
                         </div>
 
                         <div class="col-12">
-                            <label for="editarTitulo" class="form-label">Título</label>
-                            <input type="text" class="form-control" id="editarTitulo" name="editarTitulo" maxlength="120" required>
-                            <div class="invalid-feedback">Debe ingresar el título.</div>
+                            <label
+                                for="editarTitulo"
+                                class="form-label"
+                            >
+                                Título
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="editarTitulo"
+                                name="editarTitulo"
+                                maxlength="120"
+                                required
+                            >
+
+                            <div class="invalid-feedback">
+                                Debe ingresar el título.
+                            </div>
                         </div>
 
                         <div class="col-12">
-                            <label for="editarDescripcion" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="editarDescripcion" name="editarDescripcion" rows="5"></textarea>
+                            <label
+                                for="editarDescripcion"
+                                class="form-label"
+                            >
+                                Descripción
+                            </label>
+
+                            <textarea
+                                class="form-control"
+                                id="editarDescripcion"
+                                name="editarDescripcion"
+                                rows="5"
+                            ></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label
+                                for="editarClienteAsignado"
+                                class="form-label"
+                            >
+                                Cliente
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="editarClienteAsignado"
+                                name="editarClienteAsignado"
+                            >
+                                <option value="">
+                                    Seleccione un cliente
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label
+                                for="editarAreaAsignada"
+                                class="form-label"
+                            >
+                                Área
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="editarAreaAsignada"
+                                name="editarAreaAsignada"
+                            >
+                                <option value="">
+                                    Seleccione un área
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label
+                                for="editarEmpleadoAsignado"
+                                class="form-label"
+                            >
+                                Empleado asignado
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="editarEmpleadoAsignado"
+                                name="editarEmpleadoAsignado"
+                            >
+                                <option value="">
+                                    Seleccione un empleado
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label
+                                for="editarPrioridad"
+                                class="form-label"
+                            >
+                                Prioridad
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="editarPrioridad"
+                                name="editarPrioridad"
+                            >
+                                <option value="baja">
+                                    Baja
+                                </option>
+
+                                <option value="media">
+                                    Media
+                                </option>
+
+                                <option value="alta">
+                                    Alta
+                                </option>
+
+                                <option value="critica">
+                                    Crítica
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label
+                                for="editarFechaVencimiento"
+                                class="form-label"
+                            >
+                                Fecha límite
+                            </label>
+
+                            <input
+                                type="date"
+                                class="form-control"
+                                id="editarFechaVencimiento"
+                                name="editarFechaVencimiento"
+                            >
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label">Archivo actual</label>
+                            <hr class="my-2">
+
+                            <h6 class="mb-1">
+                                <i class="fa-solid fa-paperclip me-2"></i>
+                                Adjunto del ticket
+                            </h6>
+
+                            <p class="text-muted small mb-0">
+                                Puede conservar el adjunto actual o reemplazarlo por un archivo o una carpeta.
+                            </p>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">
+                                Adjunto actual
+                            </label>
+
                             <div class="border rounded p-3 bg-light">
-                                <div id="editarArchivoSinAdjunto" class="text-muted">
-                                    Este ticket no tiene un archivo adjunto.
+                                <div
+                                    id="editarArchivoSinAdjunto"
+                                    class="text-muted"
+                                >
+                                    Este ticket no tiene un adjunto.
                                 </div>
 
-                                <div id="editarArchivoDisponible" class="d-none">
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div
+                                    id="editarArchivoDisponible"
+                                    class="d-none"
+                                >
+                                    <div
+                                        class="d-flex justify-content-between align-items-center flex-wrap gap-3"
+                                    >
                                         <div class="d-flex align-items-center gap-3">
-                                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 44px; height: 44px;">
+                                            <span
+                                                class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary"
+                                                style="width: 44px; height: 44px;"
+                                            >
                                                 <i class="fa-solid fa-paperclip"></i>
                                             </span>
 
                                             <div>
-                                                <div id="editarArchivoActualNombre" class="fw-semibold">Archivo adjunto</div>
-                                                <small id="editarArchivoActualTipo" class="text-muted">Archivo de Google Drive</small>
+                                                <div
+                                                    id="editarArchivoActualNombre"
+                                                    class="fw-semibold"
+                                                >
+                                                    Adjunto
+                                                </div>
+
+                                                <small
+                                                    id="editarArchivoActualTipo"
+                                                    class="text-muted"
+                                                >
+                                                    Adjunto de Google Drive
+                                                </small>
                                             </div>
                                         </div>
 
@@ -66,7 +288,8 @@
                                             rel="noopener noreferrer"
                                             class="btn btn-outline-primary btn-sm"
                                         >
-                                            <i class="fa-solid fa-eye me-2"></i>Ver archivo
+                                            <i class="fa-solid fa-eye me-2"></i>
+                                            Ver adjunto
                                         </a>
                                     </div>
                                 </div>
@@ -74,7 +297,13 @@
                         </div>
 
                         <div class="col-12">
-                            <label for="editarArchivoAdjunto" class="form-label">Reemplazar archivo</label>
+                            <label
+                                for="editarArchivoAdjunto"
+                                class="form-label"
+                            >
+                                Reemplazar por un archivo individual
+                            </label>
+
                             <input
                                 type="file"
                                 class="form-control"
@@ -82,54 +311,77 @@
                                 name="archivo"
                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt"
                             >
+
                             <div class="form-text">
-                                Deje este campo vacío para conservar el archivo actual. Tamaño máximo permitido: 10 MB.
+                                Tamaño máximo por archivo: 50 MB.
+                                Formatos permitidos: PDF, Word, Excel, PNG, JPG, JPEG y TXT.
                             </div>
-                            <div class="invalid-feedback">El archivo seleccionado no es válido.</div>
+
+                            <div class="invalid-feedback">
+                                El archivo seleccionado no es válido.
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label for="editarClienteAsignado" class="form-label">Cliente</label>
-                            <select class="form-select" id="editarClienteAsignado" name="editarClienteAsignado">
-                                <option value="">Seleccione un cliente</option>
-                            </select>
+                        <div class="col-12">
+                            <div class="text-center text-muted fw-semibold">
+                                O
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label for="editarAreaAsignada" class="form-label">Área</label>
-                            <select class="form-select" id="editarAreaAsignada" name="editarAreaAsignada">
-                                <option value="">Seleccione un área</option>
-                            </select>
+                        <div class="col-12">
+                            <label
+                                for="editarCarpetaAdjunta"
+                                class="form-label"
+                            >
+                                Reemplazar por una carpeta completa
+                            </label>
+
+                            <input
+                                type="file"
+                                class="form-control"
+                                id="editarCarpetaAdjunta"
+                                webkitdirectory
+                                directory
+                                multiple
+                            >
+
+                            <div class="form-text">
+                                Máximo 100 archivos y 100 MB en total.
+                                La estructura de subcarpetas se conservará en Google Drive.
+                            </div>
+
+                            <div class="invalid-feedback">
+                                La carpeta contiene archivos no permitidos o supera los límites establecidos.
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label for="editarEmpleadoAsignado" class="form-label">Empleado asignado</label>
-                            <select class="form-select" id="editarEmpleadoAsignado" name="editarEmpleadoAsignado">
-                                <option value="">Seleccione un empleado</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="editarPrioridad" class="form-label">Prioridad</label>
-                            <select class="form-select" id="editarPrioridad" name="editarPrioridad">
-                                <option value="baja">Baja</option>
-                                <option value="media">Media</option>
-                                <option value="alta">Alta</option>
-                                <option value="critica">Crítica</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="editarFechaVencimiento" class="form-label">Fecha límite</label>
-                            <input type="date" class="form-control" id="editarFechaVencimiento" name="editarFechaVencimiento">
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0 py-2">
+                                <i class="fa-solid fa-circle-info me-2"></i>
+                                Deje ambos campos vacíos para conservar el adjunto actual.
+                                Al seleccionar un archivo se limpiará la carpeta seleccionada.
+                                Al seleccionar una carpeta se limpiará el archivo individual.
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnActualizarTicket">
-                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cambios
+                    <button
+                        type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="btnActualizarTicket"
+                    >
+                        <i class="fa-solid fa-floppy-disk me-2"></i>
+                        Guardar Cambios
                     </button>
                 </div>
             </form>

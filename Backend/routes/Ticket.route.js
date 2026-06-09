@@ -11,18 +11,29 @@ const handleUploadError = require("../middlewares/handleUploadError");
 
 const router = express.Router();
 
+const procesarAdjuntosTicket = uploadTicketFile.fields([
+    {
+        name: "archivo",
+        maxCount: 1
+    },
+    {
+        name: "carpetaArchivos",
+        maxCount: 100
+    }
+]);
+
 router.get("/", getTickets);
 
 router.post(
     "/",
-    uploadTicketFile.single("archivo"),
+    procesarAdjuntosTicket,
     handleUploadError,
     postTicket
 );
 
 router.put(
     "/:id",
-    uploadTicketFile.single("archivo"),
+    procesarAdjuntosTicket,
     handleUploadError,
     putTicket
 );

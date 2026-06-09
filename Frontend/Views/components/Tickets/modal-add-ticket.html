@@ -1,69 +1,185 @@
-<div class="modal fade" id="modalAgregarTicket" tabindex="-1" aria-labelledby="modalAgregarTicketLabel" aria-hidden="true">
+```html
+<div
+    class="modal fade"
+    id="modalAgregarTicket"
+    tabindex="-1"
+    aria-labelledby="modalAgregarTicketLabel"
+    aria-hidden="true"
+>
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <form id="formAgregarTicket" enctype="multipart/form-data" novalidate>
+            <form
+                id="formAgregarTicket"
+                enctype="multipart/form-data"
+                novalidate
+            >
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalAgregarTicketLabel">
-                        <i class="fa-solid fa-ticket me-2"></i>Agregar Ticket
+                        <i class="fa-solid fa-ticket me-2"></i>
+                        Agregar Ticket
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar"
+                    ></button>
                 </div>
 
                 <div class="modal-body">
-                    <div id="alertaFormularioTicket" class="alert alert-danger d-none" role="alert"></div>
+                    <div
+                        id="alertaFormularioTicket"
+                        class="alert alert-danger d-none"
+                        role="alert"
+                    ></div>
 
-                    <input type="hidden" id="usuarioId" name="usuarioId">
+                    <input
+                        type="hidden"
+                        id="usuarioId"
+                        name="usuarioId"
+                    >
 
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="titulo" class="form-label">Título</label>
-                            <input type="text" class="form-control" id="titulo" name="titulo" maxlength="120" required>
-                            <div class="invalid-feedback">Debe ingresar el título.</div>
+                            <label for="titulo" class="form-label">
+                                Título
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="titulo"
+                                name="titulo"
+                                maxlength="120"
+                                required
+                            >
+
+                            <div class="invalid-feedback">
+                                Debe ingresar el título.
+                            </div>
                         </div>
 
                         <div class="col-12">
-                            <label for="descripcion" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="descripcion" name="descripcion" rows="4"></textarea>
+                            <label for="descripcion" class="form-label">
+                                Descripción
+                            </label>
+
+                            <textarea
+                                class="form-control"
+                                id="descripcion"
+                                name="descripcion"
+                                rows="4"
+                            ></textarea>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="clienteAsignado" class="form-label">Cliente</label>
-                            <select class="form-select" id="clienteAsignado" name="clienteAsignado">
-                                <option value="">Seleccione un cliente</option>
+                            <label for="clienteAsignado" class="form-label">
+                                Cliente
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="clienteAsignado"
+                                name="clienteAsignado"
+                            >
+                                <option value="">
+                                    Seleccione un cliente
+                                </option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="areaAsignada" class="form-label">Área</label>
-                            <select class="form-select" id="areaAsignada" name="areaAsignada">
-                                <option value="">Seleccione un área</option>
+                            <label for="areaAsignada" class="form-label">
+                                Área
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="areaAsignada"
+                                name="areaAsignada"
+                            >
+                                <option value="">
+                                    Seleccione un área
+                                </option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="empleadoAsignado" class="form-label">Empleado asignado</label>
-                            <select class="form-select" id="empleadoAsignado" name="empleadoAsignado">
-                                <option value="">Seleccione un empleado</option>
+                            <label for="empleadoAsignado" class="form-label">
+                                Empleado asignado
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="empleadoAsignado"
+                                name="empleadoAsignado"
+                            >
+                                <option value="">
+                                    Seleccione un empleado
+                                </option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="prioridad" class="form-label">Prioridad</label>
-                            <select class="form-select" id="prioridad" name="prioridad">
-                                <option value="baja">Baja</option>
-                                <option value="media" selected>Media</option>
-                                <option value="alta">Alta</option>
-                                <option value="critica">Crítica</option>
+                            <label for="prioridad" class="form-label">
+                                Prioridad
+                            </label>
+
+                            <select
+                                class="form-select"
+                                id="prioridad"
+                                name="prioridad"
+                            >
+                                <option value="baja">
+                                    Baja
+                                </option>
+
+                                <option value="media" selected>
+                                    Media
+                                </option>
+
+                                <option value="alta">
+                                    Alta
+                                </option>
+
+                                <option value="critica">
+                                    Crítica
+                                </option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="fechaVencimiento" class="form-label">Fecha límite</label>
-                            <input type="date" class="form-control" id="fechaVencimiento" name="fechaVencimiento">
+                            <label for="fechaVencimiento" class="form-label">
+                                Fecha límite
+                            </label>
+
+                            <input
+                                type="date"
+                                class="form-control"
+                                id="fechaVencimiento"
+                                name="fechaVencimiento"
+                            >
                         </div>
 
                         <div class="col-12">
-                            <label for="archivoAdjunto" class="form-label">Archivo adjunto</label>
+                            <hr class="my-2">
+
+                            <h6 class="mb-1">
+                                <i class="fa-solid fa-paperclip me-2"></i>
+                                Adjunto del ticket
+                            </h6>
+
+                            <p class="text-muted small mb-0">
+                                Puede seleccionar un archivo individual o una carpeta completa.
+                            </p>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="archivoAdjunto" class="form-label">
+                                Archivo individual
+                            </label>
+
                             <input
                                 type="file"
                                 class="form-control"
@@ -71,18 +187,74 @@
                                 name="archivo"
                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt"
                             >
+
                             <div class="form-text">
-                                Tamaño máximo permitido: 10 MB. Formatos: PDF, Word, Excel, imágenes y texto.
+                                Tamaño máximo por archivo: 50 MB.
+                                Formatos permitidos: PDF, Word, Excel, PNG, JPG, JPEG y TXT.
                             </div>
-                            <div class="invalid-feedback">El archivo seleccionado no es válido.</div>
+
+                            <div class="invalid-feedback">
+                                El archivo seleccionado no es válido.
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="text-center text-muted fw-semibold">
+                                O
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="carpetaAdjunta" class="form-label">
+                                Carpeta completa
+                            </label>
+
+                            <input
+                                type="file"
+                                class="form-control"
+                                id="carpetaAdjunta"
+                                webkitdirectory
+                                directory
+                                multiple
+                            >
+
+                            <div class="form-text">
+                                Máximo 100 archivos y 100 MB en total.
+                                La estructura de subcarpetas se conservará en Google Drive.
+                            </div>
+
+                            <div class="invalid-feedback">
+                                La carpeta seleccionada contiene archivos no permitidos
+                                o supera los límites establecidos.
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0 py-2">
+                                <i class="fa-solid fa-circle-info me-2"></i>
+                                Al seleccionar un archivo se limpiará la carpeta seleccionada.
+                                Al seleccionar una carpeta se limpiará el archivo individual.
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnGuardarTicket">
-                        <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Ticket
+                    <button
+                        type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="btnGuardarTicket"
+                    >
+                        <i class="fa-solid fa-floppy-disk me-2"></i>
+                        Guardar Ticket
                     </button>
                 </div>
             </form>

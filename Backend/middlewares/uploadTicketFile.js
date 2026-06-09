@@ -21,6 +21,18 @@ const tiposPermitidos = [
     "text/plain"
 ];
 
+const extensionesPermitidas = [
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".txt"
+];
+
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
         callback(null, uploadsPath);
@@ -32,29 +44,43 @@ const storage = multer.diskStorage({
             .replace(/[\u0300-\u036f]/g, "")
             .replace(/[^a-zA-Z0-9._-]/g, "_");
 
-        const nombreTemporal = `${Date.now()}-${nombreSeguro}`;
+        const nombreTemporal = `${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2, 8)}-${nombreSeguro}`;
 
         callback(null, nombreTemporal);
     }
 });
 
 const fileFilter = (req, file, callback) => {
-    if (!tiposPermitidos.includes(file.mimetype)) {
+    const extension = path
+        .extname(file.originalname)
+        .toLowerCase();
+
+    const tipoPermitido =
+        tiposPermitidos.includes(file.mimetype);
+
+    const extensionPermitida =
+        extensionesPermitidas.includes(extension);
+
+    if (!tipoPermitido && !extensionPermitida) {
         return callback(
-            new Error("El formato del archivo no está permitido."),
+            new Error(
+                `El formato del archivo ${file.originalname} no está permitido.`
+            ),
             false
         );
     }
 
-    return callback(null, true);
+    callback(null, true);
 };
 
 const uploadTicketFile = multer({
     storage,
     fileFilter,
     limits: {
-        fileSize: 10 * 1024 * 1024,
-        files: 1
+        fileSize: 50 * 1024 * 1024,
+        files: 100
     }
 });
 
