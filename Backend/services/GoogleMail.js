@@ -1,27 +1,26 @@
 const { google } = require("googleapis");
 
-const {
-    GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET,
-    GOOGLE_GMAIL_REFRESH_TOKEN,
-    GOOGLE_GMAIL_REDIRECT_URI,
-    GOOGLE_DRIVE_REDIRECT_URI,
-    CRM_TICKETS_URL
-} = process.env;
-
-if (!GOOGLE_CLIENT_ID) {
-    throw new Error("Falta GOOGLE_CLIENT_ID en el .env");
-}
-
-if (!GOOGLE_CLIENT_SECRET) {
-    throw new Error("Falta GOOGLE_CLIENT_SECRET en el .env");
-}
-
-if (!GOOGLE_GMAIL_REFRESH_TOKEN) {
-    throw new Error("Falta GOOGLE_GMAIL_REFRESH_TOKEN en el .env");
-}
-
 function createGmailClient() {
+    const {
+        GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET,
+        GOOGLE_GMAIL_REFRESH_TOKEN,
+        GOOGLE_GMAIL_REDIRECT_URI,
+        GOOGLE_DRIVE_REDIRECT_URI
+    } = process.env;
+
+    if (!GOOGLE_CLIENT_ID) {
+        throw new Error("Falta GOOGLE_CLIENT_ID en las variables de entorno.");
+    }
+
+    if (!GOOGLE_CLIENT_SECRET) {
+        throw new Error("Falta GOOGLE_CLIENT_SECRET en las variables de entorno.");
+    }
+
+    if (!GOOGLE_GMAIL_REFRESH_TOKEN) {
+        throw new Error("Falta GOOGLE_GMAIL_REFRESH_TOKEN en las variables de entorno.");
+    }
+
     const oauth2Client = new google.auth.OAuth2(
         GOOGLE_CLIENT_ID,
         GOOGLE_CLIENT_SECRET,
@@ -65,9 +64,20 @@ function formatDate(fecha) {
     return fechaParseada.toLocaleDateString("es-CR");
 }
 
+function getAttachmentLink(ticket) {
+    const adjunto = ticket?.archivoAdjunto;
+
+    return (
+        adjunto?.webViewLink ||
+        adjunto?.enlace ||
+        adjunto?.url ||
+        ""
+    );
+}
+
 function buildTicketEmailBody(ticket) {
     const enlaceTickets =
-        CRM_TICKETS_URL ||
+        process.env.CRM_TICKETS_URL ||
         "https://crm-c40k.onrender.com/Views/tickets.html";
 
     const numeroTicket =
@@ -75,13 +85,8 @@ function buildTicketEmailBody(ticket) {
         ticket.id ||
         "Sin número";
 
-    const adjunto = ticket.archivoAdjunto;
-
     const enlaceAdjunto =
-        adjunto?.webViewLink ||
-        adjunto?.enlace ||
-        adjunto?.url ||
-        "";
+        getAttachmentLink(ticket);
 
     return `
 Hola ${ticket.empleadoNombre || "equipo"},
