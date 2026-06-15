@@ -39,7 +39,9 @@ function generateDriveAuthUrl() {
         access_type: "offline",
         prompt: "consent",
         scope: [
-            "https://www.googleapis.com/auth/drive.file"
+            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/gmail.send"
+
         ]
     });
 }

@@ -189,8 +189,24 @@ function mapTicket(id, data) {
     };
 }
 
+async function getTicketById(ticketId) {
+    if (!ticketId) {
+        throw new Error("Falta el id del ticket.");
+    }
+
+    const ticketRef = db.collection("tickets").doc(ticketId);
+    const ticketSnap = await ticketRef.get();
+
+    if (!ticketSnap.exists) {
+        throw new Error("El ticket no existe.");
+    }
+
+    return mapTicket(ticketSnap.id, ticketSnap.data());
+}
+
 module.exports = {
     createTicket,
     getAllTickets,
-    updateTicket
+    updateTicket,
+    getTicketById
 };

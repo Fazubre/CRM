@@ -3,8 +3,17 @@ const fs = require("fs/promises");
 const {
     createTicket,
     getAllTickets,
+    getTicketById,
     updateTicket
 } = require("../models/Ticket.model");
+
+const {
+    getEmployeeById
+} = require("../models/Employee.model");
+
+const {
+    sendTicketAssignmentEmail
+} = require("../services/GoogleMail");
 
 const {
     uploadTicketFileWithOAuth,
@@ -287,6 +296,54 @@ async function construirArchivoAdjuntoDrive(req) {
     };
 }
 
+async function intentarEnviarCorreoAsignacion(ticket) {
+    if (!ticket?.empleadoId) {
+        return {
+            enviado: false,
+            motivo: "El ticket no tiene empleado asignado."
+        };
+    }
+
+    try {
+        const empleado = await getEmployeeById(ticket.empleadoId);
+
+        if (!empleado?.correo) {
+            return {
+                enviado: false,
+                motivo: "El empleado no tiene correo registrado."
+            };
+        }
+
+        return await sendTicketAssignmentEmail({
+            employee: empleado,
+            ticket
+        });
+    } catch (error) {
+        console.error(
+            "Error enviando correo de asignación:",
+            error
+        );
+
+        return {
+            enviado: false,
+            motivo:
+                error.message ||
+                "No fue posible enviar el correo de asignación."
+        };
+    }
+}
+
+function debeEnviarCorreoPorCambioEmpleado(ticketAnterior, ticketActualizado) {
+    const empleadoAnteriorId = String(ticketAnterior?.empleadoId || "");
+    const empleadoNuevoId = String(ticketActualizado?.empleadoId || "");
+
+    if (!empleadoNuevoId) {
+        return false;
+    }
+
+    return empleadoAnteriorId !== empleadoNuevoId;
+}
+
 async function postTicket(req, res) {
     try {
         console.log(
@@ -373,6 +430,10 @@ async function postTicket(req, res) {
                 datosTicket
             );
 
+        const resultadoCorreo =
+            await intentarEnviarCorreoAsignacion(
+                ticketCreado
+        );
         return res.status(201).json({
             ok: true,
 
@@ -385,6 +446,8 @@ async function postTicket(req, res) {
                     : archivoAdjunto?.tipoAdjunto === "archivo"
                         ? "Ticket y archivo creados correctamente."
                         : "Ticket creado correctamente.",
+            correoAsignacion:
+                resultadoCorreo,
 
             ticket:
                 ticketCreado
@@ -469,6 +532,9 @@ async function putTicket(req, res) {
 
         const { id } = req.params;
 
+        const ticketAnterior =
+            await getTicketById(id);
+
         const archivoAdjunto =
             await construirArchivoAdjuntoDrive(req);
 
@@ -521,6 +587,23 @@ async function putTicket(req, res) {
                 datosTicket
             );
 
+        let resultadoCorreo = {
+            enviado: false,
+            motivo: "El empleado asignado no cambió."
+        };
+
+        if (
+            debeEnviarCorreoPorCambioEmpleado(
+                ticketAnterior,
+                ticketActualizado
+            )
+        ) {
+            resultadoCorreo =
+                await intentarEnviarCorreoAsignacion(
+                    ticketActualizado
+                );
+        }
+
         return res.status(200).json({
             ok: true,
 
@@ -533,9 +616,11 @@ async function putTicket(req, res) {
                     : archivoAdjunto?.tipoAdjunto === "archivo"
                         ? "Ticket y archivo actualizados correctamente."
                         : "Ticket actualizado correctamente.",
-
+            correoAsignacion:
+                resultadoCorreo,
             ticket:
                 ticketActualizado
+                
         });
     } catch (error) {
         console.error(
@@ -563,7 +648,7 @@ async function putTicket(req, res) {
     }
 }
 
-module.exports = {
+module.exports = { 
     postTicket,
     getTickets,
     putTicket
