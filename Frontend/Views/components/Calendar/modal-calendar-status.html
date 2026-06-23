@@ -1,8 +1,8 @@
 <div
     class="modal fade"
-    id="modalConectarCalendar"
+    id="modalEstadoCalendar"
     tabindex="-1"
-    aria-labelledby="modalConectarCalendarLabel"
+    aria-labelledby="modalEstadoCalendarLabel"
     aria-hidden="true"
 >
     <div class="modal-dialog modal-dialog-centered">
@@ -10,9 +10,9 @@
             <div class="modal-header">
                 <h5
                     class="modal-title"
-                    id="modalConectarCalendarLabel"
+                    id="modalEstadoCalendarLabel"
                 >
-                    Conectar Google Calendar
+                    Estado de Google Calendar
                 </h5>
 
                 <button
@@ -25,53 +25,38 @@
 
             <div class="modal-body">
                 <div
-                    id="alertaModalCalendar"
-                    class="alert alert-warning d-none"
+                    id="modalEstadoCalendarAlert"
+                    class="alert alert-info"
                     role="alert"
-                ></div>
-
-                <p class="mb-3">
-                    Se conectará la cuenta de Google Calendar del empleado seleccionado.
-                    Los tickets asignados con fecha límite aparecerán automáticamente en su calendario.
-                </p>
+                >
+                    Estado pendiente.
+                </div>
 
                 <div class="border rounded p-3 bg-light">
                     <p class="mb-1">
                         <strong>Empleado:</strong>
-                        <span id="modalCalendarEmpleadoNombre">-</span>
+                        <span id="modalEstadoCalendarEmpleado">-</span>
                     </p>
 
                     <p class="mb-1">
-                        <strong>Correo:</strong>
-                        <span id="modalCalendarEmpleadoCorreo">-</span>
+                        <strong>Correo conectado:</strong>
+                        <span id="modalEstadoCalendarCorreo">-</span>
                     </p>
 
                     <p class="mb-0">
-                        <strong>Estado:</strong>
-                        <span id="modalCalendarEmpleadoEstado">-</span>
+                        <strong>Resultado:</strong>
+                        <span id="modalEstadoCalendarResultado">-</span>
                     </p>
                 </div>
-
-                <p class="text-muted mt-3 mb-0">
-                    Asegúrate de iniciar sesión con la cuenta de Google correcta.
-                </p>
             </div>
 
             <div class="modal-footer">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary"
+                    class="btn btn-primary"
                     data-bs-dismiss="modal"
                 >
-                    Cancelar
-                </button>
-
-                <button
-                    type="button"
-                    id="btnConfirmarConectarCalendar"
-                    class="btn btn-primary"
-                >
-                    Conectar Calendar
+                    Entendido
                 </button>
             </div>
         </div>

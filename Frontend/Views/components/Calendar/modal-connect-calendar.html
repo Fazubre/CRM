@@ -1,216 +1,79 @@
-const BACKEND_URL = "https://crm-c40k.onrender.com";
+<div
+    class="modal fade"
+    id="modalConectarCalendar"
+    tabindex="-1"
+    aria-labelledby="modalConectarCalendarLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5
+                    class="modal-title"
+                    id="modalConectarCalendarLabel"
+                >
+                    Conectar Google Calendar
+                </h5>
 
-window.addEventListener("load", async () => {
-    configurarEstadoInicial();
-    await cargarEmpleadosCalendar();
-    configurarBotonConectar();
-});
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+            </div>
 
-function configurarEstadoInicial() {
-    const params = new URLSearchParams(window.location.search);
+            <div class="modal-body">
+                <div
+                    id="alertaModalCalendar"
+                    class="alert alert-warning d-none"
+                    role="alert"
+                ></div>
 
-    const estado = params.get("estado");
-    const mensaje = params.get("mensaje");
-    const correo = params.get("correo");
+                <p class="mb-3">
+                    Se conectará la cuenta de Google Calendar del empleado seleccionado.
+                    Los tickets asignados con fecha límite aparecerán automáticamente en su calendario.
+                </p>
 
-    if (estado === "ok") {
-        mostrarEstado(
-            correo
-                ? `Google Calendar conectado correctamente con ${correo}.`
-                : "Google Calendar conectado correctamente.",
-            "success"
-        );
+                <div class="border rounded p-3 bg-light">
+                    <p class="mb-1">
+                        <strong>Empleado:</strong>
+                        <span id="modalCalendarEmpleadoNombre">-</span>
+                    </p>
 
-        return;
-    }
+                    <p class="mb-1">
+                        <strong>Correo:</strong>
+                        <span id="modalCalendarEmpleadoCorreo">-</span>
+                    </p>
 
-    if (estado === "error") {
-        mostrarEstado(
-            mensaje || "No fue posible conectar Google Calendar.",
-            "danger"
-        );
+                    <p class="mb-0">
+                        <strong>Estado:</strong>
+                        <span id="modalCalendarEmpleadoEstado">-</span>
+                    </p>
+                </div>
 
-        return;
-    }
+                <p class="text-muted mt-3 mb-0">
+                    Asegúrate de iniciar sesión con la cuenta de Google correcta.
+                </p>
+            </div>
 
-    mostrarEstado(
-        "Selecciona un empleado para conectar su Google Calendar.",
-        "info"
-    );
-}
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancelar
+                </button>
 
-async function cargarEmpleadosCalendar() {
-    const selectEmpleado =
-        document.getElementById("selectEmpleadoCalendar");
-
-    const btnConectarCalendar =
-        document.getElementById("btnConectarCalendar");
-
-    if (!selectEmpleado) {
-        return;
-    }
-
-    try {
-        if (btnConectarCalendar) {
-            btnConectarCalendar.disabled = true;
-        }
-
-        selectEmpleado.innerHTML =
-            `<option value="">Cargando empleados...</option>`;
-
-        const response =
-            await fetch(`${BACKEND_URL}/employees`);
-
-        const data =
-            await leerRespuesta(response);
-
-        if (!response.ok || !data.ok) {
-            throw new Error(
-                data.mensaje ||
-                "No fue posible cargar los empleados."
-            );
-        }
-
-        const empleados =
-            Array.isArray(data.employees)
-                ? data.employees
-                : [];
-
-        selectEmpleado.innerHTML =
-            `<option value="">Seleccione un empleado</option>`;
-
-        empleados.forEach((empleado) => {
-            const option =
-                document.createElement("option");
-
-            const empleadoId =
-                empleado.id ||
-                empleado.employeeId ||
-                "";
-
-            const nombre =
-                empleado.nombre ||
-                empleado.name ||
-                "Empleado";
-
-            const correo =
-                empleado.correo ||
-                empleado.email ||
-                "";
-
-            const calendarConectado =
-                empleado.google_calendar?.conectado === true;
-
-            option.value = empleadoId;
-
-            option.textContent = [
-                nombre,
-                correo,
-                calendarConectado
-                    ? "Calendar conectado"
-                    : "Calendar sin conectar"
-            ]
-                .filter(Boolean)
-                .join(" | ");
-
-            if (calendarConectado) {
-                option.dataset.calendarConectado = "true";
-            }
-
-            selectEmpleado.appendChild(option);
-        });
-
-        const params =
-            new URLSearchParams(window.location.search);
-
-        const empleadoId =
-            params.get("empleadoId");
-
-        if (empleadoId) {
-            selectEmpleado.value = empleadoId;
-        }
-
-        if (btnConectarCalendar) {
-            btnConectarCalendar.disabled = false;
-        }
-    } catch (error) {
-        console.error(
-            "Error cargando empleados:",
-            error
-        );
-
-        selectEmpleado.innerHTML =
-            `<option value="">Error al cargar empleados</option>`;
-
-        mostrarEstado(
-            error.message ||
-            "No fue posible cargar los empleados.",
-            "danger"
-        );
-
-        if (btnConectarCalendar) {
-            btnConectarCalendar.disabled = true;
-        }
-    }
-}
-
-function configurarBotonConectar() {
-    const btnConectarCalendar =
-        document.getElementById("btnConectarCalendar");
-
-    const selectEmpleado =
-        document.getElementById("selectEmpleadoCalendar");
-
-    if (!btnConectarCalendar || !selectEmpleado) {
-        return;
-    }
-
-    btnConectarCalendar.addEventListener("click", () => {
-        const empleadoId =
-            selectEmpleado.value;
-
-        if (!empleadoId) {
-            mostrarEstado(
-                "Primero debes seleccionar un empleado.",
-                "warning"
-            );
-
-            return;
-        }
-
-        btnConectarCalendar.disabled = true;
-        btnConectarCalendar.textContent = "Conectando...";
-
-        window.location.href =
-            `${BACKEND_URL}/calendar/conectar?empleadoId=${encodeURIComponent(empleadoId)}`;
-    });
-}
-
-async function leerRespuesta(response) {
-    const contentType =
-        response.headers.get("content-type") || "";
-
-    if (contentType.includes("application/json")) {
-        return response.json();
-    }
-
-    return {
-        ok: false,
-        mensaje: await response.text()
-    };
-}
-
-function mostrarEstado(mensaje, tipo) {
-    const calendarStatus =
-        document.getElementById("calendarStatus");
-
-    if (!calendarStatus) {
-        return;
-    }
-
-    calendarStatus.className =
-        `alert alert-${tipo}`;
-
-    calendarStatus.textContent =
-        mensaje;
-}
+                <button
+                    type="button"
+                    id="btnConfirmarConectarCalendar"
+                    class="btn btn-primary"
+                >
+                    Conectar Calendar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
