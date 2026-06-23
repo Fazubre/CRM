@@ -1,0 +1,216 @@
+const BACKEND_URL = "https://crm-c40k.onrender.com";
+
+window.addEventListener("load", async () => {
+    configurarEstadoInicial();
+    await cargarEmpleadosCalendar();
+    configurarBotonConectar();
+});
+
+function configurarEstadoInicial() {
+    const params = new URLSearchParams(window.location.search);
+
+    const estado = params.get("estado");
+    const mensaje = params.get("mensaje");
+    const correo = params.get("correo");
+
+    if (estado === "ok") {
+        mostrarEstado(
+            correo
+                ? `Google Calendar conectado correctamente con ${correo}.`
+                : "Google Calendar conectado correctamente.",
+            "success"
+        );
+
+        return;
+    }
+
+    if (estado === "error") {
+        mostrarEstado(
+            mensaje || "No fue posible conectar Google Calendar.",
+            "danger"
+        );
+
+        return;
+    }
+
+    mostrarEstado(
+        "Selecciona un empleado para conectar su Google Calendar.",
+        "info"
+    );
+}
+
+async function cargarEmpleadosCalendar() {
+    const selectEmpleado =
+        document.getElementById("selectEmpleadoCalendar");
+
+    const btnConectarCalendar =
+        document.getElementById("btnConectarCalendar");
+
+    if (!selectEmpleado) {
+        return;
+    }
+
+    try {
+        if (btnConectarCalendar) {
+            btnConectarCalendar.disabled = true;
+        }
+
+        selectEmpleado.innerHTML =
+            `<option value="">Cargando empleados...</option>`;
+
+        const response =
+            await fetch(`${BACKEND_URL}/employees`);
+
+        const data =
+            await leerRespuesta(response);
+
+        if (!response.ok || !data.ok) {
+            throw new Error(
+                data.mensaje ||
+                "No fue posible cargar los empleados."
+            );
+        }
+
+        const empleados =
+            Array.isArray(data.employees)
+                ? data.employees
+                : [];
+
+        selectEmpleado.innerHTML =
+            `<option value="">Seleccione un empleado</option>`;
+
+        empleados.forEach((empleado) => {
+            const option =
+                document.createElement("option");
+
+            const empleadoId =
+                empleado.id ||
+                empleado.employeeId ||
+                "";
+
+            const nombre =
+                empleado.nombre ||
+                empleado.name ||
+                "Empleado";
+
+            const correo =
+                empleado.correo ||
+                empleado.email ||
+                "";
+
+            const calendarConectado =
+                empleado.google_calendar?.conectado === true;
+
+            option.value = empleadoId;
+
+            option.textContent = [
+                nombre,
+                correo,
+                calendarConectado
+                    ? "Calendar conectado"
+                    : "Calendar sin conectar"
+            ]
+                .filter(Boolean)
+                .join(" | ");
+
+            if (calendarConectado) {
+                option.dataset.calendarConectado = "true";
+            }
+
+            selectEmpleado.appendChild(option);
+        });
+
+        const params =
+            new URLSearchParams(window.location.search);
+
+        const empleadoId =
+            params.get("empleadoId");
+
+        if (empleadoId) {
+            selectEmpleado.value = empleadoId;
+        }
+
+        if (btnConectarCalendar) {
+            btnConectarCalendar.disabled = false;
+        }
+    } catch (error) {
+        console.error(
+            "Error cargando empleados:",
+            error
+        );
+
+        selectEmpleado.innerHTML =
+            `<option value="">Error al cargar empleados</option>`;
+
+        mostrarEstado(
+            error.message ||
+            "No fue posible cargar los empleados.",
+            "danger"
+        );
+
+        if (btnConectarCalendar) {
+            btnConectarCalendar.disabled = true;
+        }
+    }
+}
+
+function configurarBotonConectar() {
+    const btnConectarCalendar =
+        document.getElementById("btnConectarCalendar");
+
+    const selectEmpleado =
+        document.getElementById("selectEmpleadoCalendar");
+
+    if (!btnConectarCalendar || !selectEmpleado) {
+        return;
+    }
+
+    btnConectarCalendar.addEventListener("click", () => {
+        const empleadoId =
+            selectEmpleado.value;
+
+        if (!empleadoId) {
+            mostrarEstado(
+                "Primero debes seleccionar un empleado.",
+                "warning"
+            );
+
+            return;
+        }
+
+        btnConectarCalendar.disabled = true;
+        btnConectarCalendar.textContent = "Conectando...";
+
+        window.location.href =
+            `${BACKEND_URL}/calendar/conectar?empleadoId=${encodeURIComponent(empleadoId)}`;
+    });
+}
+
+async function leerRespuesta(response) {
+    const contentType =
+        response.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+        return response.json();
+    }
+
+    return {
+        ok: false,
+        mensaje: await response.text()
+    };
+}
+
+function mostrarEstado(mensaje, tipo) {
+    const calendarStatus =
+        document.getElementById("calendarStatus");
+
+    if (!calendarStatus) {
+        return;
+    }
+
+    calendarStatus.className =
+        `alert alert-${tipo}`;
+
+    calendarStatus.textContent =
+        mensaje;
+}

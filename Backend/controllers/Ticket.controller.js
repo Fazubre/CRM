@@ -4,7 +4,8 @@ const {
     createTicket,
     getAllTickets,
     getTicketById,
-    updateTicket
+    updateTicket,
+    updateTicketCalendarData
 } = require("../models/Ticket.model");
 
 const {
@@ -19,6 +20,10 @@ const {
     uploadTicketFileWithOAuth,
     uploadTicketFolderWithOAuth
 } = require("../services/GoogleDriveOAuth");
+
+const {
+    crearEventoTicket
+} = require("../services/GoogleCalendar");
 
 const MAX_FOLDER_TOTAL_SIZE = 100 * 1024 * 1024;
 
@@ -305,7 +310,8 @@ async function intentarEnviarCorreoAsignacion(ticket) {
     }
 
     try {
-        const empleado = await getEmployeeById(ticket.empleadoId);
+        const empleado =
+            await getEmployeeById(ticket.empleadoId);
 
         if (!empleado?.correo) {
             return {
@@ -333,9 +339,133 @@ async function intentarEnviarCorreoAsignacion(ticket) {
     }
 }
 
-function debeEnviarCorreoPorCambioEmpleado(ticketAnterior, ticketActualizado) {
-    const empleadoAnteriorId = String(ticketAnterior?.empleadoId || "");
-    const empleadoNuevoId = String(ticketActualizado?.empleadoId || "");
+async function guardarErrorCalendarSiEsPosible(ticket, error) {
+    if (!ticket?.id) {
+        return;
+    }
+
+    try {
+        await updateTicketCalendarData(ticket.id, {
+            calendarSyncStatus: "error",
+            calendarSyncError:
+                error.message ||
+                "No fue posible crear el evento en Google Calendar.",
+            calendarUpdatedAt: new Date().toISOString()
+        });
+    } catch (errorGuardando) {
+        console.error(
+            "No fue posible guardar el error de Calendar en el ticket:",
+            errorGuardando
+        );
+    }
+}
+
+async function intentarCrearEventoCalendar(ticket) {
+    if (!ticket?.empleadoId) {
+        return {
+            creado: false,
+            motivo: "El ticket no tiene empleado asignado."
+        };
+    }
+
+    if (!ticket?.fechaVencimiento) {
+        return {
+            creado: false,
+            motivo: "El ticket no tiene fecha de vencimiento."
+        };
+    }
+
+    try {
+        const empleado =
+            await getEmployeeById(ticket.empleadoId);
+
+        const refreshToken =
+            empleado?.google_calendar?.refresh_token || "";
+
+        const calendarConectado =
+            empleado?.google_calendar?.conectado === true;
+
+        if (!calendarConectado || !refreshToken) {
+            return {
+                creado: false,
+                motivo: "El empleado no tiene Google Calendar conectado."
+            };
+        }
+
+        const evento =
+            await crearEventoTicket({
+                refreshToken,
+                titulo: ticket.titulo,
+                descripcion: construirDescripcionEvento(ticket),
+                fechaVencimiento: ticket.fechaVencimiento
+            });
+
+        await updateTicketCalendarData(ticket.id, {
+            calendarEventId:
+                evento.id || "",
+
+            calendarEventLink:
+                evento.htmlLink || "",
+
+            calendarSyncStatus:
+                "created",
+
+            calendarSyncError:
+                "",
+
+            calendarUpdatedAt:
+                new Date().toISOString()
+        });
+
+        return {
+            creado: true,
+            eventId: evento.id || "",
+            eventLink: evento.htmlLink || ""
+        };
+    } catch (error) {
+        console.error(
+            "Error creando evento de Google Calendar:",
+            error
+        );
+
+        await guardarErrorCalendarSiEsPosible(
+            ticket,
+            error
+        );
+
+        return {
+            creado: false,
+            motivo:
+                error.message ||
+                "No fue posible crear el evento en Google Calendar."
+        };
+    }
+}
+
+function construirDescripcionEvento(ticket) {
+    return [
+        "Ticket asignado desde CRM Voyager.",
+        "",
+        `Ticket: #${ticket.numeroTicket || ""}`,
+        `Título: ${ticket.titulo || "Sin título"}`,
+        `Cliente: ${ticket.clienteNombre || "No asignado"}`,
+        `Área: ${ticket.areaName || "No asignada"}`,
+        `Prioridad: ${ticket.prioridad || "media"}`,
+        `Empleado asignado: ${ticket.empleadoNombre || "No asignado"}`,
+        "",
+        `Descripción: ${ticket.descripcion || "Sin descripción"}`
+    ].join("\n");
+}
+
+function debeEnviarCorreoPorCambioEmpleado(
+    ticketAnterior,
+    ticketActualizado
+) {
+    const empleadoAnteriorId =
+        String(ticketAnterior?.empleadoId || "");
+
+    const empleadoNuevoId =
+        String(ticketActualizado?.empleadoId || "");
 
     if (!empleadoNuevoId) {
         return false;
@@ -344,10 +474,45 @@ function debeEnviarCorreoPorCambioEmpleado(ticketAnterior, ticketActualizado) {
     return empleadoAnteriorId !== empleadoNuevoId;
 }
 
+function debeCrearEventoCalendar(
+    ticketAnterior,
+    ticketActualizado
+) {
+    const empleadoAnteriorId =
+        String(ticketAnterior?.empleadoId || "");
+
+    const empleadoNuevoId =
+        String(ticketActualizado?.empleadoId || "");
+
+    const fechaAnterior =
+        String(ticketAnterior?.fechaVencimiento || "");
+
+    const fechaNueva =
+        String(ticketActualizado?.fechaVencimiento || "");
+
+    if (!empleadoNuevoId || !fechaNueva) {
+        return false;
+    }
+
+    if (empleadoAnteriorId !== empleadoNuevoId) {
+        return true;
+    }
+
+    if (fechaAnterior !== fechaNueva) {
+        return true;
+    }
+
+    if (!ticketAnterior?.calendarEventId) {
+        return true;
+    }
+
+    return false;
+}
+
 async function postTicket(req, res) {
     try {
         console.log(
-            "TICKET CONTROLLER VERSION: 2026-06-08-FOLDERS-V1"
+            "TICKET CONTROLLER VERSION: 2026-06-08-CALENDAR-V1"
         );
 
         console.log(
@@ -433,12 +598,18 @@ async function postTicket(req, res) {
         const resultadoCorreo =
             await intentarEnviarCorreoAsignacion(
                 ticketCreado
-        );
+            );
+
+        const resultadoCalendar =
+            await intentarCrearEventoCalendar(
+                ticketCreado
+            );
+
         return res.status(201).json({
             ok: true,
 
             version:
-                "2026-06-08-FOLDERS-V1",
+                "2026-06-08-CALENDAR-V1",
 
             mensaje:
                 archivoAdjunto?.tipoAdjunto === "carpeta"
@@ -446,8 +617,12 @@ async function postTicket(req, res) {
                     : archivoAdjunto?.tipoAdjunto === "archivo"
                         ? "Ticket y archivo creados correctamente."
                         : "Ticket creado correctamente.",
+
             correoAsignacion:
                 resultadoCorreo,
+
+            calendar:
+                resultadoCalendar,
 
             ticket:
                 ticketCreado
@@ -467,7 +642,7 @@ async function postTicket(req, res) {
             ok: false,
 
             version:
-                "2026-06-08-FOLDERS-V1",
+                "2026-06-08-CALENDAR-V1",
 
             mensaje:
                 error.message ||
@@ -506,7 +681,7 @@ async function getTickets(req, res) {
 async function putTicket(req, res) {
     try {
         console.log(
-            "PUT TICKET CONTROLLER VERSION: 2026-06-08-FOLDERS-V1"
+            "PUT TICKET CONTROLLER VERSION: 2026-06-08-CALENDAR-V1"
         );
 
         console.log(
@@ -604,11 +779,28 @@ async function putTicket(req, res) {
                 );
         }
 
+        let resultadoCalendar = {
+            creado: false,
+            motivo: "No hubo cambios relevantes para Google Calendar."
+        };
+
+        if (
+            debeCrearEventoCalendar(
+                ticketAnterior,
+                ticketActualizado
+            )
+        ) {
+            resultadoCalendar =
+                await intentarCrearEventoCalendar(
+                    ticketActualizado
+                );
+        }
+
         return res.status(200).json({
             ok: true,
 
             version:
-                "2026-06-08-FOLDERS-V1",
+                "2026-06-08-CALENDAR-V1",
 
             mensaje:
                 archivoAdjunto?.tipoAdjunto === "carpeta"
@@ -616,11 +808,15 @@ async function putTicket(req, res) {
                     : archivoAdjunto?.tipoAdjunto === "archivo"
                         ? "Ticket y archivo actualizados correctamente."
                         : "Ticket actualizado correctamente.",
+
             correoAsignacion:
                 resultadoCorreo,
+
+            calendar:
+                resultadoCalendar,
+
             ticket:
                 ticketActualizado
-                
         });
     } catch (error) {
         console.error(
@@ -637,7 +833,7 @@ async function putTicket(req, res) {
             ok: false,
 
             version:
-                "2026-06-08-FOLDERS-V1",
+                "2026-06-08-CALENDAR-V1",
 
             mensaje:
                 error.message ||
@@ -648,7 +844,7 @@ async function putTicket(req, res) {
     }
 }
 
-module.exports = { 
+module.exports = {
     postTicket,
     getTickets,
     putTicket
