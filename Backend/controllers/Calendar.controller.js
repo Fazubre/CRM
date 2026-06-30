@@ -5,11 +5,6 @@ const {
     saveEmployeeCalendarTokens
 } = require("../models/Calendar.model");
 
-const {
-    generarUrlGoogleCalendar,
-    obtenerTokensDesdeCodigo
-} = require("../services/GoogleCalendar");
-
 function construirRedirectError(mensaje, empleadoId = "", correo = "") {
     const params = new URLSearchParams();
 
