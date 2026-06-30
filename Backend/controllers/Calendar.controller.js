@@ -11,7 +11,7 @@ const {
     crearOAuthClient
 } = require("../services/GoogleCalendar");
 
-c
+
 function construirRedirectError(mensaje, empleadoId = "", correo = "") {
     const params = new URLSearchParams();
 
