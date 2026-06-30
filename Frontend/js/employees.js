@@ -206,6 +206,36 @@ function getEmployeeId(employee) {
     );
 }
 
+function setInputValueIfExists(id, value) {
+    const input = document.getElementById(id);
+
+    if (!input) {
+        return;
+    }
+
+    input.value = value ?? "";
+}
+
+function getInputValueIfExists(id, defaultValue = "") {
+    const input = document.getElementById(id);
+
+    if (!input) {
+        return defaultValue;
+    }
+
+    return String(input.value || "").trim();
+}
+
+function setPlaceholderIfExists(id, value) {
+    const input = document.getElementById(id);
+
+    if (!input) {
+        return;
+    }
+
+    input.placeholder = value;
+}
+
 function employeeTieneGoogle(employee) {
     return (
         employee?.google_conectado === true ||
@@ -329,7 +359,6 @@ async function guardarNuevoEmployee(event) {
         mostrarAlerta(error.message || "Error al crear employee.", "danger");
     }
 }
-
 async function editarEmployee(employeeId) {
     try {
         const respuesta = await fetch(`${API_URL}/${encodeURIComponent(employeeId)}`);
@@ -343,26 +372,31 @@ async function editarEmployee(employeeId) {
         const id = getEmployeeId(employee);
         const tieneCalendar = employeeTieneCalendar(employee);
 
-        document.getElementById("editEmployeeId").value = id;
-        document.getElementById("editNombre").value = employee.nombre || "";
-        document.getElementById("editCorreo").value = employee.correo || employee.google_correo || "";
-        document.getElementById("editGoogleId").value = employee.google_id || "";
-        document.getElementById("editFotoUrl").value = employee.foto_url || "";
-        document.getElementById("editRol").value = employee.rol || "employee";
-        document.getElementById("editActivo").value = String(Boolean(employee.activo));
-        document.getElementById("editCorreoVerificado").value = String(Boolean(employee.correo_verificado));
-        document.getElementById("editCalendarHabilitado").value = String(tieneCalendar);
-        document.getElementById("editCalendarId").value = employee.calendar_id || "primary";
-        document.getElementById("editTimezone").value = employee.timezone || "America/Costa_Rica";
+        setInputValueIfExists("editEmployeeId", id);
+        setInputValueIfExists("editNombre", employee.nombre || "");
+        setInputValueIfExists("editCorreo", employee.correo || employee.google_correo || "");
+        setInputValueIfExists("editGoogleId", employee.google_id || "");
+        setInputValueIfExists("editFotoUrl", employee.foto_url || "");
+        setInputValueIfExists("editRol", employee.rol || "employee");
+        setInputValueIfExists("editActivo", String(Boolean(employee.activo)));
+        setInputValueIfExists("editCorreoVerificado", String(Boolean(employee.correo_verificado)));
 
-        document.getElementById("editGoogleRefreshToken").value = "";
+        setInputValueIfExists("editCalendarHabilitado", String(tieneCalendar));
+        setInputValueIfExists("editCalendarId", employee.calendar_id || "primary");
+        setInputValueIfExists("editTimezone", employee.timezone || "America/Costa_Rica");
+
+        setInputValueIfExists("editGoogleRefreshToken", "");
 
         if (obtenerRefreshTokenCalendar(employee)) {
-            document.getElementById("editGoogleRefreshToken").placeholder =
-                "Ya existe un refresh token guardado. Escribe uno nuevo solo si deseas reemplazarlo.";
+            setPlaceholderIfExists(
+                "editGoogleRefreshToken",
+                "Ya existe un refresh token guardado. Escribe uno nuevo solo si deseas reemplazarlo."
+            );
         } else {
-            document.getElementById("editGoogleRefreshToken").placeholder =
-                "Se usará después para Calendar";
+            setPlaceholderIfExists(
+                "editGoogleRefreshToken",
+                "Se usará después para Calendar"
+            );
         }
 
         modalEditEmployee.show();
@@ -375,23 +409,36 @@ async function editarEmployee(employeeId) {
 async function guardarEdicionEmployee(event) {
     event.preventDefault();
 
-    const employeeId = document.getElementById("editEmployeeId").value.trim();
+    const employeeId = getInputValueIfExists("editEmployeeId");
 
     const payload = {
-        nombre: document.getElementById("editNombre").value.trim(),
-        correo: document.getElementById("editCorreo").value.trim(),
-        google_id: document.getElementById("editGoogleId").value.trim(),
-        foto_url: document.getElementById("editFotoUrl").value.trim(),
-        rol: document.getElementById("editRol").value,
-        activo: document.getElementById("editActivo").value === "true",
-        correo_verificado: document.getElementById("editCorreoVerificado").value === "true",
-        calendar_habilitado: document.getElementById("editCalendarHabilitado").value === "true",
-        calendar_id: document.getElementById("editCalendarId").value.trim() || "primary",
-        timezone: document.getElementById("editTimezone").value.trim() || "America/Costa_Rica"
+        nombre: getInputValueIfExists("editNombre"),
+        correo: getInputValueIfExists("editCorreo"),
+        google_id: getInputValueIfExists("editGoogleId"),
+        foto_url: getInputValueIfExists("editFotoUrl"),
+        rol: getInputValueIfExists("editRol", "employee"),
+        activo: getInputValueIfExists("editActivo", "true") === "true",
+        correo_verificado: getInputValueIfExists("editCorreoVerificado", "false") === "true"
     };
 
+    if (document.getElementById("editCalendarHabilitado")) {
+        payload.calendar_habilitado =
+            getInputValueIfExists("editCalendarHabilitado", "false") === "true";
+    }
+
+    if (document.getElementById("editCalendarId")) {
+        payload.calendar_id =
+            getInputValueIfExists("editCalendarId", "primary") || "primary";
+    }
+
+    if (document.getElementById("editTimezone")) {
+        payload.timezone =
+            getInputValueIfExists("editTimezone", "America/Costa_Rica") ||
+            "America/Costa_Rica";
+    }
+
     const refreshToken = limpiarToken(
-        document.getElementById("editGoogleRefreshToken").value
+        getInputValueIfExists("editGoogleRefreshToken")
     );
 
     if (refreshToken) {
