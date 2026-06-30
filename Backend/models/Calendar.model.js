@@ -11,12 +11,24 @@ async function getEmployeeCalendarData(empleadoId) {
         return null;
     }
 
+    const googleCalendar = empleado.google_calendar || {};
+
+    const refreshToken =
+        googleCalendar.refresh_token ||
+        empleado.google_refresh_token ||
+        "";
+
+    const conectado =
+        googleCalendar.conectado === true ||
+        empleado.calendar_habilitado === true ||
+        Boolean(refreshToken);
+
     return {
         empleado,
-        conectado: empleado.google_calendar?.conectado === true,
-        refreshToken: empleado.google_calendar?.refresh_token || "",
-        correoGoogle: empleado.google_correo || "",
-        nombreGoogle: empleado.google_nombre || ""
+        conectado,
+        refreshToken,
+        correoGoogle: empleado.google_correo || empleado.correo || "",
+        nombreGoogle: empleado.google_nombre || empleado.nombre || ""
     };
 }
 
@@ -25,11 +37,18 @@ async function saveEmployeeCalendarTokens(empleadoId, datosCalendar) {
         .collection("employees")
         .doc(empleadoId);
 
+    const ahora = new Date().toISOString();
+
     await empleadoRef.set(
         {
             google_id: datosCalendar.googleId || "",
             google_nombre: datosCalendar.nombreGoogle || "",
             google_correo: datosCalendar.correoGoogle || "",
+
+            calendar_habilitado: true,
+            google_refresh_token: datosCalendar.refreshToken || null,
+            google_calendar_conectado: true,
+
             google_calendar: {
                 conectado: true,
                 access_token: datosCalendar.accessToken || "",
@@ -38,7 +57,9 @@ async function saveEmployeeCalendarTokens(empleadoId, datosCalendar) {
                 token_type: datosCalendar.tokenType || "",
                 expiry_date: datosCalendar.expiryDate || null
             },
-            actualizado_en: new Date().toISOString()
+
+            fecha_actualizacion: ahora,
+            actualizado_en: ahora
         },
         { merge: true }
     );
@@ -46,7 +67,8 @@ async function saveEmployeeCalendarTokens(empleadoId, datosCalendar) {
     return {
         id: empleadoId,
         google_correo: datosCalendar.correoGoogle || "",
-        google_calendar_conectado: true
+        google_calendar_conectado: true,
+        calendar_habilitado: true
     };
 }
 

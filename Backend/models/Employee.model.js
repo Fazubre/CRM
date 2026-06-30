@@ -2,6 +2,61 @@ const { db } = require("../services/Firebase");
 
 const coleccionEmployees = db.collection("employees");
 
+function parseBoolean(valor, valorDefault = false) {
+    if (typeof valor === "boolean") {
+        return valor;
+    }
+
+    if (typeof valor === "string") {
+        return valor.trim().toLowerCase() === "true";
+    }
+
+    return valorDefault;
+}
+
+function mapEmployee(id, data = {}) {
+    const googleCalendar =
+        data.google_calendar &&
+        typeof data.google_calendar === "object"
+            ? data.google_calendar
+            : {};
+
+    const calendarRefreshToken =
+        googleCalendar.refresh_token ||
+        data.google_refresh_token ||
+        "";
+
+    const calendarConectado =
+        googleCalendar.conectado === true ||
+        data.calendar_habilitado === true ||
+        Boolean(calendarRefreshToken);
+
+    const googleConectado =
+        Boolean(data.google_id) ||
+        Boolean(data.google_correo) ||
+        Boolean(data.google_nombre);
+
+    return {
+        id,
+        employee_id: data.employee_id || id,
+
+        ...data,
+
+        google_conectado: googleConectado,
+
+        calendar_habilitado: calendarConectado,
+        google_calendar_conectado: calendarConectado,
+
+        calendar_id: data.calendar_id || "primary",
+        timezone: data.timezone || "America/Costa_Rica",
+
+        google_correo: data.google_correo || data.correo || "",
+        google_nombre: data.google_nombre || data.nombre || "",
+
+        tiene_calendar_refresh_token: Boolean(calendarRefreshToken)
+    };
+}
+
 function sanitizeEmployeeData(datos = {}, esActualizacion = false) {
     const employeeSanitizado = {};
 
@@ -22,23 +77,18 @@ function sanitizeEmployeeData(datos = {}, esActualizacion = false) {
     }
 
     if (!esActualizacion || Object.prototype.hasOwnProperty.call(datos, "correo_verificado")) {
-        employeeSanitizado.correo_verificado = Boolean(datos.correo_verificado);
-    }
+        employeeSanitizado.correo_verificado = parseBoolean(datos.correo_verificado, false);    }
 
     if (!esActualizacion || Object.prototype.hasOwnProperty.call(datos, "rol")) {
         employeeSanitizado.rol = String(datos.rol || "employee").trim().toLowerCase();
     }
 
     if (!esActualizacion || Object.prototype.hasOwnProperty.call(datos, "activo")) {
-        employeeSanitizado.activo =
-            typeof datos.activo === "boolean" ? datos.activo : true;
+        employeeSanitizado.activo = parseBoolean(datos.activo, true);
     }
 
     if (!esActualizacion || Object.prototype.hasOwnProperty.call(datos, "calendar_habilitado")) {
-        employeeSanitizado.calendar_habilitado =
-            typeof datos.calendar_habilitado === "boolean"
-                ? datos.calendar_habilitado
-                : false;
+        employeeSanitizado.calendar_habilitado = parseBoolean(datos.calendar_habilitado, false);
     }
 
     if (!esActualizacion || Object.prototype.hasOwnProperty.call(datos, "calendar_id")) {
@@ -160,7 +210,7 @@ async function createEmployee(datos) {
 
     await referencia.set(employeeNuevo);
 
-    return employeeNuevo;
+    return mapEmployee(referencia.id, employeeNuevo);
 }
 
 async function getAllEmployees() {
@@ -169,12 +219,7 @@ async function getAllEmployees() {
         .get();
 
     return snapshot.docs.map((doc) => {
-        const data = doc.data();
-
-        return {
-            id: doc.id,
-            ...data
-        };
+        return mapEmployee(doc.id, doc.data());
     });
 }
 
@@ -186,11 +231,9 @@ async function getEmployeeById(employeeId) {
         throw new Error("El employee no existe.");
     }
 
-    return {
-        id: documento.id,
-        ...documento.data()
-    };
+    return mapEmployee(documento.id, documento.data());
 }
+
 async function getEmployeeByGoogleId(googleId) {
     const snapshot = await coleccionEmployees
         .where("google_id", "==", String(googleId).trim())
@@ -203,11 +246,9 @@ async function getEmployeeByGoogleId(googleId) {
 
     const doc = snapshot.docs[0];
 
-    return {
-        id: doc.id,
-        ...doc.data()
-    };
+    return mapEmployee(doc.id, doc.data());
 }
+
 
 async function getEmployeeByEmail(correo) {
     const snapshot = await coleccionEmployees
@@ -221,10 +262,7 @@ async function getEmployeeByEmail(correo) {
 
     const doc = snapshot.docs[0];
 
-    return {
-        id: doc.id,
-        ...doc.data()
-    };
+    return mapEmployee(doc.id, doc.data());
 }
 
 async function syncEmployeeFromGoogle(datosGoogle) {
@@ -321,7 +359,7 @@ async function updateEmployee(employeeId, datos) {
     await referencia.update(datosActualizados);
 
     const documentoActualizado = await referencia.get();
-    return documentoActualizado.data();
+    return mapEmployee(documentoActualizado.id, documentoActualizado.data());
 }
 
 async function changeEmployeeStatus(employeeId, activo) {
@@ -338,7 +376,7 @@ async function changeEmployeeStatus(employeeId, activo) {
     });
 
     const documentoActualizado = await referencia.get();
-    return documentoActualizado.data();
+    return mapEmployee(documentoActualizado.id, documentoActualizado.data());
 }
 
 module.exports = {
