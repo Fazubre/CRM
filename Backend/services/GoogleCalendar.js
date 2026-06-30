@@ -244,5 +244,6 @@ async function crearEventoTicket({
 module.exports = {
     generarUrlGoogleCalendar,
     obtenerTokensDesdeCodigo,
-    crearEventoTicket
+    crearEventoTicket,
+    crearOAuthClient
 };
