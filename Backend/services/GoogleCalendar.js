@@ -37,7 +37,7 @@ function crearOAuthClient() {
     );
 }
 
-function generarUrlGoogleCalendar(empleadoId) {
+function generarUrlGoogleCalendar(empleadoId, correoEmpleado = "") {
     if (!empleadoId) {
         throw new Error(
             "Falta el empleadoId para conectar Google Calendar."
@@ -47,16 +47,23 @@ function generarUrlGoogleCalendar(empleadoId) {
     const oauth2Client =
         crearOAuthClient();
 
-    return oauth2Client.generateAuthUrl({
+    const opcionesAuth = {
         access_type: "offline",
-        prompt: "consent",
+        prompt: "consent select_account",
         state: empleadoId,
+        include_granted_scopes: true,
         scope: [
             "https://www.googleapis.com/auth/calendar.events",
             "https://www.googleapis.com/auth/userinfo.email",
             "https://www.googleapis.com/auth/userinfo.profile"
         ]
-    });
+    };
+
+    if (correoEmpleado) {
+        opcionesAuth.login_hint = correoEmpleado;
+    }
+
+    return oauth2Client.generateAuthUrl(opcionesAuth);
 }
 
 async function obtenerTokensDesdeCodigo(code) {

@@ -10,8 +10,21 @@ const {
     obtenerTokensDesdeCodigo
 } = require("../services/GoogleCalendar");
 
-function construirRedirectError(mensaje) {
-    return `/Views/calendar.html?estado=error&mensaje=${encodeURIComponent(mensaje)}`;
+function construirRedirectError(mensaje, empleadoId = "", correo = "") {
+    const params = new URLSearchParams();
+
+    params.set("estado", "error");
+    params.set("mensaje", mensaje || "No fue posible conectar Google Calendar.");
+
+    if (empleadoId) {
+        params.set("empleadoId", empleadoId);
+    }
+
+    if (correo) {
+        params.set("correo", correo);
+    }
+
+    return `/Views/calendar.html?${params.toString()}`;
 }
 
 function construirRedirectOk(empleadoId, correo) {
@@ -21,12 +34,14 @@ function construirRedirectOk(empleadoId, correo) {
 }
 
 async function conectarCalendar(req, res) {
-    try {
-        const { empleadoId } = req.query;
+    const empleadoId = req.query.empleadoId || "";
 
+    try {
         if (!empleadoId) {
             return res.redirect(
-                construirRedirectError("No se recibió el ID del empleado.")
+                construirRedirectError(
+                    "No se recibió el ID del empleado."
+                )
             );
         }
 
@@ -34,11 +49,22 @@ async function conectarCalendar(req, res) {
 
         if (!empleado) {
             return res.redirect(
-                construirRedirectError("El empleado no existe en Firestore.")
+                construirRedirectError(
+                    "El empleado no existe en Firestore.",
+                    empleadoId
+                )
             );
         }
 
-        const url = generarUrlGoogleCalendar(empleadoId);
+        const correoEmpleado =
+            empleado.correo ||
+            empleado.email ||
+            "";
+
+        const url = generarUrlGoogleCalendar(
+            empleadoId,
+            correoEmpleado
+        );
 
         return res.redirect(url);
     } catch (error) {
@@ -46,7 +72,9 @@ async function conectarCalendar(req, res) {
 
         return res.redirect(
             construirRedirectError(
-                "No fue posible iniciar la conexión con Google Calendar."
+                error.message ||
+                "No fue posible iniciar la conexión con Google Calendar.",
+                empleadoId
             )
         );
     }
@@ -98,11 +126,7 @@ async function callbackCalendar(req, res) {
             );
         }
 
-        const oauth2Client = new google.auth.OAuth2(
-            process.env.GOOGLE_CLIENT_ID,
-            process.env.GOOGLE_CLIENT_SECRET,
-            process.env.GOOGLE_CALENDAR_REDIRECT_URI
-        );
+        const oauth2Client = crearOAuthClient();
 
         oauth2Client.setCredentials(tokens);
 
@@ -164,7 +188,8 @@ async function callbackCalendar(req, res) {
     }
 }
 
-module.exports = {
-    conectarCalendar,
-    callbackCalendar
-};
+const {
+    generarUrlGoogleCalendar,
+    obtenerTokensDesdeCodigo,
+    crearOAuthClient
+} = require("../services/GoogleCalendar");
