@@ -5,7 +5,8 @@ const {
     getAllTickets,
     getTicketById,
     updateTicket,
-    updateTicketCalendarData
+    updateTicketCalendarData,
+    deleteTicket
 } = require("../models/Ticket.model");
 
 const {
@@ -844,8 +845,67 @@ async function putTicket(req, res) {
     }
 }
 
+async function removeTicket(req, res) {
+    try {
+        const { id } = req.params;
+
+        const datosUsuario = {
+            usuarioId:
+                req.body?.usuarioId ||
+                "",
+
+            googleId:
+                req.body?.googleId ||
+                req.body?.google_id ||
+                "",
+
+            correo:
+                req.body?.correo ||
+                req.body?.email ||
+                ""
+        };
+
+        const resultado = await deleteTicket(
+            id,
+            datosUsuario
+        );
+
+        return res.status(200).json({
+            ok: true,
+            mensaje: "Ticket eliminado correctamente.",
+            resultado
+        });
+    } catch (error) {
+        console.error(
+            "Error eliminando ticket:",
+            error
+        );
+
+        let status = 400;
+
+        if (error.message === "El ticket no existe.") {
+            status = 404;
+        }
+
+        if (
+            error.message === "El usuario no existe como empleado." ||
+            error.message === "Solo los empleados con rol admin pueden borrar tickets."
+        ) {
+            status = 403;
+        }
+
+        return res.status(status).json({
+            ok: false,
+            mensaje:
+                error.message ||
+                "No fue posible eliminar el ticket."
+        });
+    }
+}
+
 module.exports = {
     postTicket,
     getTickets,
-    putTicket
+    putTicket,
+    removeTicket
 };

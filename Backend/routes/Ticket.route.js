@@ -3,13 +3,19 @@ const express = require("express");
 const {
     postTicket,
     getTickets,
-    putTicket
+    putTicket,
+    removeTicket
 } = require("../controllers/Ticket.controller");
 
 const uploadTicketFile = require("../middlewares/uploadTicketFile");
 const handleUploadError = require("../middlewares/handleUploadError");
 
 const router = express.Router();
+
+router.delete(
+    "/:id",
+    removeTicket
+);
 
 const procesarAdjuntosTicket = uploadTicketFile.fields([
     {

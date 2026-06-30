@@ -129,6 +129,140 @@ async function getAllTickets() {
     });
 }
 
+function getRolEmpleado(empleado) {
+    if (!empleado) {
+        return "";
+    }
+
+    if (Array.isArray(empleado.roles)) {
+        const rolAdmin = empleado.roles
+            .map((rol) => String(rol || "").trim().toLowerCase())
+            .find((rol) => rol === "admin");
+
+        return rolAdmin || "";
+    }
+
+    return String(
+        empleado.rol ||
+        empleado.role ||
+        empleado.tipoRol ||
+        empleado.tipo_usuario ||
+        ""
+    )
+        .trim()
+        .toLowerCase();
+}
+
+async function getEmpleadoSolicitante(datosUsuario) {
+    const usuarioId =
+        datosUsuario?.usuarioId ||
+        datosUsuario?.id ||
+        "";
+
+    const googleId =
+        datosUsuario?.googleId ||
+        datosUsuario?.google_id ||
+        "";
+
+    const correo =
+        datosUsuario?.correo ||
+        datosUsuario?.email ||
+        "";
+
+    if (usuarioId) {
+        const empleadoDoc = await db
+            .collection("employees")
+            .doc(String(usuarioId))
+            .get();
+
+        if (empleadoDoc.exists) {
+            return {
+                id: empleadoDoc.id,
+                ...empleadoDoc.data()
+            };
+        }
+    }
+
+    if (googleId) {
+        const snapshot = await db
+            .collection("employees")
+            .where("google_id", "==", String(googleId))
+            .limit(1)
+            .get();
+
+        if (!snapshot.empty) {
+            const empleadoDoc = snapshot.docs[0];
+
+            return {
+                id: empleadoDoc.id,
+                ...empleadoDoc.data()
+            };
+        }
+    }
+
+    if (correo) {
+        const snapshot = await db
+            .collection("employees")
+            .where("correo", "==", String(correo))
+            .limit(1)
+            .get();
+
+        if (!snapshot.empty) {
+            const empleadoDoc = snapshot.docs[0];
+
+            return {
+                id: empleadoDoc.id,
+                ...empleadoDoc.data()
+            };
+        }
+    }
+
+    return null;
+}
+
+async function checkAdminEmployee(datosUsuario) {
+    const empleado = await getEmpleadoSolicitante(
+        datosUsuario
+    );
+
+    if (!empleado) {
+        throw new Error("El usuario no existe como empleado.");
+    }
+
+    const rol = getRolEmpleado(empleado);
+
+    if (rol !== "admin") {
+        throw new Error("Solo los empleados con rol admin pueden borrar tickets.");
+    }
+
+    return true;
+}
+
+async function deleteTicket(ticketId, datosUsuario) {
+    if (!ticketId) {
+        throw new Error("Falta el id del ticket.");
+    }
+
+    await checkAdminEmployee(datosUsuario);
+
+    const ticketRef = db
+        .collection("tickets")
+        .doc(ticketId);
+
+    const ticketSnap = await ticketRef.get();
+
+    if (!ticketSnap.exists) {
+        throw new Error("El ticket no existe.");
+    }
+
+    await ticketRef.delete();
+
+    return {
+        id: ticketId,
+        eliminado: true
+    };
+}
+
 async function getTicketById(ticketId) {
     if (!ticketId) {
         throw new Error("Falta el id del ticket.");
@@ -395,5 +529,6 @@ module.exports = {
     getAllTickets,
     getTicketById,
     updateTicket,
+    deleteTicket,
     updateTicketCalendarData
 };

@@ -247,6 +247,23 @@ function setupEvents() {
             openEditTicketModal(ticket);
         }
     );
+
+    $(document).on(
+        "click",
+        ".btn-eliminar-ticket",
+        async function () {
+            const ticket = findTicketById(
+                $(this).data("id")
+            );
+
+            if (!ticket) {
+                showTicketNotFound();
+                return;
+            }
+
+            await deleteTicket(ticket);
+        }
+    );
 }
 
 function showTicketNotFound() {
@@ -1212,6 +1229,36 @@ function getUsuarioIdActual() {
     );
 }
 
+function getRolUsuarioActual() {
+    const usuario = getUsuarioActual();
+
+    if (!usuario) {
+        return "";
+    }
+
+    if (Array.isArray(usuario.roles)) {
+        const rolAdmin = usuario.roles
+            .map((rol) => String(rol || "").trim().toLowerCase())
+            .find((rol) => rol === "admin");
+
+        return rolAdmin || "";
+    }
+
+    return String(
+        usuario.rol ||
+        usuario.role ||
+        usuario.tipoRol ||
+        usuario.tipo_usuario ||
+        ""
+    )
+        .trim()
+        .toLowerCase();
+}
+
+function checkUsuarioAdmin() {
+    return getRolUsuarioActual() === "admin";
+}
+
 async function submitTicketForm() {
     const form =
         document.getElementById(
@@ -1498,6 +1545,94 @@ async function submitEditTicketForm() {
             "Guardar Cambios",
             "fa-solid fa-floppy-disk me-2"
         );
+    }
+}
+
+async function deleteTicket(ticket) {
+    const usuario = getUsuarioActual();
+
+    if (!checkUsuarioAdmin()) {
+        Swal.fire({
+            icon: "warning",
+            title: "Acceso denegado",
+            text: "Solo los empleados con rol admin pueden borrar tickets."
+        });
+
+        return;
+    }
+
+    const confirmacion = await Swal.fire({
+        icon: "warning",
+        title: "¿Borrar ticket?",
+        text: `Se eliminará el ticket ${ticket.numeroTicket || ticket.id}.`,
+        showCancelButton: true,
+        confirmButtonText: "Sí, borrar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#dc3545"
+    });
+
+    if (!confirmacion.isConfirmed) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${TICKETS_URL}/${encodeURIComponent(ticket.id)}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    usuarioId:
+                        usuario?.id ||
+                        usuario?.usuarioId ||
+                        "",
+
+                    googleId:
+                        usuario?.google_id ||
+                        usuario?.googleId ||
+                        "",
+
+                    correo:
+                        usuario?.correo ||
+                        usuario?.email ||
+                        ""
+                })
+            }
+        );
+
+        const data = await readResponseData(
+            response
+        );
+
+        if (!response.ok || !data.ok) {
+            throw new Error(
+                data.mensaje ||
+                "No fue posible eliminar el ticket."
+            );
+        }
+
+        await loadTickets();
+
+        Swal.fire({
+            icon: "success",
+            title: "Ticket eliminado",
+            text: "El ticket fue eliminado correctamente."
+        });
+    } catch (error) {
+        console.error(
+            "Error eliminando ticket:",
+            error
+        );
+
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text:
+                error.message ||
+                "No fue posible eliminar el ticket."
+        });
     }
 }
 
@@ -2021,12 +2156,30 @@ function renderTickets(tickets) {
                                 >
                                     Editar
                                 </button>
+
+                                ${renderDeleteTicketButton(ticket)}
                             </div>
                         </td>
                     </tr>
                 `
             )
             .join("");
+}
+
+function renderDeleteTicketButton(ticket) {
+    if (!checkUsuarioAdmin()) {
+        return "";
+    }
+
+    return `
+        <button
+            type="button"
+            class="btn btn-outline-danger btn-eliminar-ticket"
+            data-id="${escapeHtml(ticket.id || "")}"
+        >
+            Borrar
+        </button>
+    `;
 }
 
 function renderAdjunto(ticket) {
@@ -2736,4 +2889,50 @@ function appendAttachmentToFormData(
             rutasCarpeta
         )
     );
+}
+
+function getRolUsuarioActual() {
+    const usuario = getUsuarioActual();
+
+    if (!usuario) {
+        return "";
+    }
+
+    if (Array.isArray(usuario.roles)) {
+        const rolAdmin = usuario.roles
+            .map((rol) => String(rol || "").trim().toLowerCase())
+            .find((rol) => rol === "admin");
+
+        return rolAdmin || "";
+    }
+
+    return String(
+        usuario.rol ||
+        usuario.role ||
+        usuario.tipoRol ||
+        usuario.tipo_usuario ||
+        ""
+    )
+        .trim()
+        .toLowerCase();
+}
+
+function checkUsuarioAdmin() {
+    return getRolUsuarioActual() === "admin";
+}
+
+function renderDeleteTicketButton(ticket) {
+    if (!checkUsuarioAdmin()) {
+        return "";
+    }
+
+    return `
+        <button
+            type="button"
+            class="btn btn-outline-danger btn-eliminar-ticket"
+            data-id="${escapeHtml(ticket.id || "")}"
+        >
+            Borrar
+        </button>
+    `;
 }
