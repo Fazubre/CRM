@@ -1,52 +1,137 @@
-<div class="modal fade" id="modalVerTicket" tabindex="-1" aria-labelledby="modalVerTicketLabel" aria-hidden="true">
+<div
+    class="modal fade"
+    id="modalVerTicket"
+    tabindex="-1"
+    aria-labelledby="modalVerTicketLabel"
+    aria-hidden="true"
+>
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalVerTicketLabel">
-                    <i class="fa-solid fa-eye me-2"></i>Detalle del Ticket
+                <h5
+                    class="modal-title"
+                    id="modalVerTicketLabel"
+                >
+                    <i class="fa-solid fa-eye me-2"></i>
+                    Detalle del Ticket
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
             </div>
 
             <div class="modal-body">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Número de ticket</label>
-                        <div class="form-control bg-light" id="verNumeroTicket">-</div>
+                        <label class="form-label fw-semibold">
+                            Número de ticket
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verNumeroTicket"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Estado</label>
-                        <div class="form-control bg-light" id="verEstado">-</div>
+                        <label class="form-label fw-semibold">
+                            Estado
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verEstado"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Título</label>
-                        <div class="form-control bg-light" id="verTitulo">-</div>
+                        <label class="form-label fw-semibold">
+                            Título
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verTitulo"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Descripción</label>
-                        <textarea class="form-control bg-light" id="verDescripcion" rows="5" readonly></textarea>
+                        <label class="form-label fw-semibold">
+                            Descripción
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verDescripcion"
+                            role="textbox"
+                            aria-readonly="true"
+                            style="
+                                min-height: 140px;
+                                max-height: 300px;
+                                overflow-y: auto;
+                                white-space: pre-wrap;
+                                overflow-wrap: anywhere;
+                            "
+                        >
+                            Sin descripción
+                        </div>
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Archivo adjunto</label>
+                        <label class="form-label fw-semibold">
+                            Archivo adjunto
+                        </label>
+
                         <div class="border rounded p-3 bg-light">
-                            <div id="verArchivoSinAdjunto" class="text-muted">
+                            <div
+                                id="verArchivoSinAdjunto"
+                                class="text-muted"
+                            >
                                 Este ticket no tiene un archivo adjunto.
                             </div>
 
-                            <div id="verArchivoDisponible" class="d-none">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div
+                                id="verArchivoDisponible"
+                                class="d-none"
+                            >
+                                <div
+                                    class="d-flex justify-content-between align-items-center flex-wrap gap-3"
+                                >
                                     <div class="d-flex align-items-center gap-3">
-                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 44px; height: 44px;">
+                                        <span
+                                            class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary"
+                                            style="
+                                                width: 44px;
+                                                height: 44px;
+                                            "
+                                        >
                                             <i class="fa-solid fa-paperclip"></i>
                                         </span>
 
                                         <div>
-                                            <div id="verArchivoNombre" class="fw-semibold">Archivo adjunto</div>
-                                            <small id="verArchivoTipo" class="text-muted">Archivo de Google Drive</small>
+                                            <div
+                                                id="verArchivoNombre"
+                                                class="fw-semibold"
+                                            >
+                                                Archivo adjunto
+                                            </div>
+
+                                            <small
+                                                id="verArchivoTipo"
+                                                class="text-muted"
+                                            >
+                                                Archivo de Google Drive
+                                            </small>
                                         </div>
                                     </div>
 
@@ -57,7 +142,10 @@
                                         rel="noopener noreferrer"
                                         class="btn btn-outline-primary btn-sm"
                                     >
-                                        <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Abrir archivo
+                                        <i
+                                            class="fa-solid fa-arrow-up-right-from-square me-2"
+                                        ></i>
+                                        Abrir archivo
                                     </a>
                                 </div>
                             </div>
@@ -65,49 +153,119 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Cliente</label>
-                        <div class="form-control bg-light" id="verCliente">-</div>
+                        <label class="form-label fw-semibold">
+                            Cliente
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verCliente"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Área</label>
-                        <div class="form-control bg-light" id="verArea">-</div>
+                        <label class="form-label fw-semibold">
+                            Área
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verArea"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Empleado asignado</label>
-                        <div class="form-control bg-light" id="verEmpleadoAsignado">-</div>
+                        <label class="form-label fw-semibold">
+                            Empleado asignado
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verEmpleadoAsignado"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Prioridad</label>
-                        <div class="form-control bg-light" id="verPrioridad">-</div>
+                        <label class="form-label fw-semibold">
+                            Prioridad
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verPrioridad"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Fecha límite</label>
-                        <div class="form-control bg-light" id="verVencimiento">-</div>
+                        <label class="form-label fw-semibold">
+                            Fecha límite
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verVencimiento"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Creado por</label>
-                        <div class="form-control bg-light" id="verCreadoPor">-</div>
+                        <label class="form-label fw-semibold">
+                            Creado por
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verCreadoPor"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Fecha de creación</label>
-                        <div class="form-control bg-light" id="verFechaCreacion">-</div>
+                        <label class="form-label fw-semibold">
+                            Fecha de creación
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verFechaCreacion"
+                        >
+                            -
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Última actualización</label>
-                        <div class="form-control bg-light" id="verFechaActualizacion">-</div>
+                        <label class="form-label fw-semibold">
+                            Última actualización
+                        </label>
+
+                        <div
+                            class="form-control bg-light"
+                            id="verFechaActualizacion"
+                        >
+                            -
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+                <button
+                    type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal"
+                >
+                    Cerrar
+                </button>
             </div>
         </div>
     </div>

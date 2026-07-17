@@ -17,6 +17,7 @@ import {
 
 import {
     capitalizeText,
+    convertirLinksClickeables,
     formatDate,
     formatDateForInput,
     formatDateTime,
@@ -126,7 +127,11 @@ export async function loadModalsHtml() {
 
         const response =
             await fetch(
-                modal.ruta
+                modal.ruta,
+                {
+                    cache:
+                        "no-store"
+                }
             );
 
         if (!response.ok) {
@@ -325,6 +330,7 @@ function fillViewTicketModal(
 
     setTextValue(
         "verFechaCreacion",
+
         formatDateTime(
             ticket.createdAt
         )
@@ -332,6 +338,7 @@ function fillViewTicketModal(
 
     setTextValue(
         "verFechaActualizacion",
+
         formatDateTime(
             ticket.updatedAt
         )
@@ -343,9 +350,11 @@ function fillViewTicketModal(
         );
 
     if (description) {
-        description.value =
-            ticket.descripcion ||
-            "Sin descripción";
+        description.innerHTML =
+            convertirLinksClickeables(
+                ticket.descripcion ||
+                "Sin descripción"
+            );
     }
 
     fillViewTicketFile(

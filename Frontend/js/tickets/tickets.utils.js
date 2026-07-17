@@ -436,3 +436,67 @@ export function escapeHtml(
             "&#39;"
         );
 }
+
+export function convertirLinksClickeables(
+    texto
+) {
+    const patronUrl =
+        /(https?:\/\/[^\s<]+)/gi;
+
+    return String(
+        texto ?? ""
+    )
+        .split(
+            patronUrl
+        )
+        .map((fragmento) => {
+            if (
+                !/^https?:\/\//i.test(
+                    fragmento
+                )
+            ) {
+                return escapeHtml(
+                    fragmento
+                );
+            }
+
+            let enlace =
+                fragmento;
+
+            let caracteresFinales =
+                "";
+
+            while (
+                /[),.;!?]$/.test(
+                    enlace
+                )
+            ) {
+                caracteresFinales =
+                    enlace.slice(-1) +
+                    caracteresFinales;
+
+                enlace =
+                    enlace.slice(
+                        0,
+                        -1
+                    );
+            }
+
+            const enlaceSeguro =
+                escapeHtml(
+                    enlace
+                );
+
+            return `
+                <a
+                    href="${enlaceSeguro}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="link-primary text-decoration-underline"
+                >
+                    ${enlaceSeguro}
+                </a>${escapeHtml(caracteresFinales)}
+            `;
+        })
+        .join("");
+}
