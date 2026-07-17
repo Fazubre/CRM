@@ -9,8 +9,6 @@ const {
     FIREBASE_PRIVATE_KEY
 } = process.env;
 
-console.log("Firebase Project ID:", FIREBASE_PROJECT_ID);
-console.log("Firebase Client Email:", FIREBASE_CLIENT_EMAIL);
 
 if (!FIREBASE_PROJECT_ID) {
     throw new Error("Falta FIREBASE_PROJECT_ID en el .env");
