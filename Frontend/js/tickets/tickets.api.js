@@ -40,10 +40,14 @@ async function request(
     defaultErrorMessage
 ) {
     const response =
-        await fetch(
-            url,
-            options
-        );
+    await fetch(
+        url,
+        {
+            ...options,
+            credentials:
+                "include"
+        }
+    );
 
     const data =
         await readResponseData(

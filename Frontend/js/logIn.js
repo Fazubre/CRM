@@ -1,5 +1,5 @@
 const BACKEND_URL =
-    window.location.origin;
+    window.CRM_CONFIG.API_BASE_URL;
 
 const GOOGLE_CLIENT_ID =
     "578696786769-0sduvu0sni3fpjd258kg8grlm4ss2do8.apps.googleusercontent.com";
@@ -20,7 +20,7 @@ async function initPage() {
 
     if (sessionExists) {
         window.location.replace(
-            "/Views/dashboard.html"
+            window.CRM_CONFIG.DASHBOARD_URL
         );
 
         return;
@@ -487,7 +487,7 @@ function showSuccess(usuario) {
     setTimeout(
         () => {
             window.location.replace(
-                "/Views/dashboard.html"
+                window.CRM_CONFIG.DASHBOARD_URL
             );
         },
         1200

@@ -513,7 +513,7 @@ function validateTicketFile(
             valido: false,
 
             mensaje:
-                "Cada archivo no puede superar los 10 MB."
+        `Cada archivo no puede superar los ${MAX_FILE_SIZE /(1024 * 1024)} MB.`
         };
     }
 

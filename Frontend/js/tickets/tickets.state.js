@@ -1,6 +1,12 @@
 export const API_BASE_URL =
     "https://crm-c40k.onrender.com";
 
+export const FRONTEND_BASE_PATH =
+    "/CRM";
+
+export const TICKETS_COMPONENTS_URL =
+    `${FRONTEND_BASE_PATH}/components/Tickets`;
+
 export const TICKETS_URL =
     `${API_BASE_URL}/tickets`;
 
@@ -14,7 +20,7 @@ export const AREAS_URL =
     `${API_BASE_URL}/areas`;
 
 export const MAX_FILE_SIZE =
-    10 * 1024 * 1024;
+    50 * 1024 * 1024;
 
 export const MAX_FOLDER_FILES =
     100;

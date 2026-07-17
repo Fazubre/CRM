@@ -4,7 +4,6 @@ const path = require("path");
 
 const {
     requireAuth,
-    requirePageAuth
 } = require("../middlewares/auth.middleware");
 
 const googleLoginRouter =
@@ -30,11 +29,6 @@ const driveRoutes =
 
 const app = express();
 
-const frontendPath =
-    path.join(
-        __dirname,
-        "../../Frontend"
-    );
 
 const uploadsPath =
     path.join(
@@ -44,9 +38,14 @@ const uploadsPath =
 
 const allowedOrigins = [
     process.env.APP_ORIGIN,
+    process.env.APP_ORIGIN_WWW,
+    "https://voyager-cr.com",
+    "https://www.voyager-cr.com",
     "https://crm-c40k.onrender.com",
     "http://localhost:3000",
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500"
 ].filter(Boolean);
 
 app.set(
@@ -131,12 +130,25 @@ app.use(
 /*
  * Rutas públicas generales.
  */
+const FRONTEND_URL =
+    process.env.FRONTEND_URL ||
+    "https://voyager-cr.com/CRM";
+
+const LOGIN_URL =
+    process.env.LOGIN_URL ||
+    `${FRONTEND_URL}/Views/LogIn.html`;
+
 app.get(
     "/",
     (req, res) => {
-        return res.redirect(
-            "/Views/LogIn.html"
-        );
+        return res.json({
+            ok: true,
+            servicio:
+                "CRM Voyager API",
+
+            frontend:
+                FRONTEND_URL
+        });
     }
 );
 
@@ -218,28 +230,7 @@ app.use(
  * LogIn.html es la única página pública
  * dentro de la carpeta Views.
  */
-app.use(
-    "/Views",
-    (req, res, next) => {
-        const requestedPath =
-            req.path
-                .toLowerCase();
 
-        const isLoginPage =
-            requestedPath ===
-            "/login.html";
-
-        if (isLoginPage) {
-            return next();
-        }
-
-        return requirePageAuth(
-            req,
-            res,
-            next
-        );
-    }
-);
 
 /*
  * Los archivos subidos requieren sesión.
@@ -258,11 +249,7 @@ app.use(
  * Debe colocarse después del middleware
  * que protege la carpeta Views.
  */
-app.use(
-    express.static(
-        frontendPath
-    )
-);
+
 
 /*
  * Ruta no encontrada.

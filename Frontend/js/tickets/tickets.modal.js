@@ -12,11 +12,13 @@ import {
 } from "./tickets.attachments.js";
 
 import {
+    TICKETS_COMPONENTS_URL,
     ticketsState
 } from "./tickets.state.js";
 
 import {
     capitalizeText,
+    convertirLinksClickeables,
     formatDate,
     formatDateForInput,
     formatDateTime,
@@ -37,7 +39,7 @@ const MODAL_CONFIG = [
             "modalAgregarTicket",
 
         ruta:
-            "./components/Tickets/modal-add-ticket.html"
+            `${TICKETS_COMPONENTS_URL}/modal-add-ticket.html`
     },
     {
         contenedorId:
@@ -47,7 +49,7 @@ const MODAL_CONFIG = [
             "modalVerTicket",
 
         ruta:
-            "./components/Tickets/modal-view-ticket.html"
+            `${TICKETS_COMPONENTS_URL}/modal-view-ticket.html`
     },
     {
         contenedorId:
@@ -57,7 +59,7 @@ const MODAL_CONFIG = [
             "modalEditarTicket",
 
         ruta:
-            "./components/Tickets/modal-edit-ticket.html"
+            `${TICKETS_COMPONENTS_URL}/modal-edit-ticket.html`
     }
 ];
 
@@ -338,14 +340,16 @@ function fillViewTicketModal(
     );
 
     const description =
-        document.getElementById(
-            "verDescripcion"
-        );
+    document.getElementById(
+        "verDescripcion"
+    );
 
     if (description) {
-        description.value =
-            ticket.descripcion ||
-            "Sin descripción";
+        description.innerHTML =
+            convertirLinksClickeables(
+                ticket.descripcion ||
+                "Sin descripción"
+            );
     }
 
     fillViewTicketFile(
