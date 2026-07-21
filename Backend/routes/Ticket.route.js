@@ -1,47 +1,70 @@
-const express = require("express");
+const express = require(
+    "express"
+);
 
 const {
     postTicket,
     getTickets,
-    putTicket,
-    removeTicket
-} = require("../controllers/Ticket.controller");
-
-const uploadTicketFile = require("../middlewares/uploadTicketFile");
-const handleUploadError = require("../middlewares/handleUploadError");
-
-const router = express.Router();
-
-router.delete(
-    "/:id",
-    removeTicket
+    getTicket,
+    putTicket
+} = require(
+    "../controllers/Ticket.controller"
 );
 
-const procesarAdjuntosTicket = uploadTicketFile.fields([
-    {
-        name: "archivo",
-        maxCount: 1
-    },
-    {
-        name: "carpetaArchivos",
-        maxCount: 100
-    }
-]);
+const uploadTicketFile =
+    require(
+        "../middlewares/uploadTicketFile"
+    );
 
-router.get("/", getTickets);
+const handleUploadError =
+    require(
+        "../middlewares/handleUploadError"
+    );
+
+const router =
+    express.Router();
+
+const processTicketAttachments =
+    uploadTicketFile.fields([
+        {
+            name:
+                "archivo",
+
+            maxCount:
+                1
+        },
+        {
+            name:
+                "carpetaArchivos",
+
+            maxCount:
+                100
+        }
+    ]);
+
+router.get(
+    "/",
+    getTickets
+);
+
+router.get(
+    "/:id",
+    getTicket
+);
 
 router.post(
     "/",
-    procesarAdjuntosTicket,
+    processTicketAttachments,
     handleUploadError,
     postTicket
 );
 
 router.put(
     "/:id",
-    procesarAdjuntosTicket,
+    processTicketAttachments,
     handleUploadError,
     putTicket
 );
 
-module.exports = router;
+module.exports =
+    router;

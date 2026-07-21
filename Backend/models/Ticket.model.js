@@ -1,15 +1,31 @@
-const { FieldValue } = require("firebase-admin/firestore");
-const { db } = require("../services/Firebase");
+const {
+    FieldValue
+} = require(
+    "firebase-admin/firestore"
+);
 
-function validateTicketData(datosTicket) {
-    if (!datosTicket || typeof datosTicket !== "object") {
+const {
+    db
+} = require(
+    "../services/Firebase"
+);
+
+function validateTicketData(
+    datosTicket
+) {
+    if (
+        !datosTicket ||
+        typeof datosTicket !==
+        "object"
+    ) {
         throw new Error(
             "No se recibieron los datos del ticket."
         );
     }
 
     if (
-        typeof datosTicket.titulo !== "string" ||
+        typeof datosTicket.titulo !==
+        "string" ||
         !datosTicket.titulo.trim()
     ) {
         throw new Error(
@@ -18,11 +34,59 @@ function validateTicketData(datosTicket) {
     }
 }
 
-async function createTicket(datosTicket) {
-    console.log("TICKET MODEL VERSION: 2026-06-08-CALENDAR-V1");
-    console.log("datosTicket recibido en modelo:", datosTicket);
+function validateTicketId(
+    ticketId
+) {
+    if (
+        !ticketId ||
+        !String(ticketId).trim()
+    ) {
+        throw new Error(
+            "Falta el id del ticket."
+        );
+    }
+}
 
-    validateTicketData(datosTicket);
+function normalizeTicketStatus(
+    estado
+) {
+    const estadoNormalizado =
+        String(
+            estado ||
+            "abierto"
+        )
+            .trim()
+            .toLowerCase();
+
+    const isCompleted =
+        estadoNormalizado ===
+        "completado";
+
+    return {
+        estadoTicketId:
+            isCompleted
+                ? "2"
+                : "1",
+
+        estadoNombre:
+            isCompleted
+                ? "Completado"
+                : "Abierto",
+
+        isCompleted
+    };
+}
+
+async function createTicket(
+    datosTicket
+) {
+    console.log(
+        "TICKET MODEL VERSION: 2026-07-COMMENTS-DRIVE-V1"
+    );
+
+    validateTicketData(
+        datosTicket
+    );
 
     const {
         usuarioId = "",
@@ -37,339 +101,369 @@ async function createTicket(datosTicket) {
         clienteNombre = "No asignado",
         areaId = "",
         areaName = "No asignada",
-        archivoAdjunto = null
+        archivoAdjunto = null,
+        googleDrive = null
     } = datosTicket;
 
-    const contadorRef = db.collection("counters").doc("tickets");
-    const ticketRef = db.collection("tickets").doc();
+    const contadorRef =
+        db
+            .collection("counters")
+            .doc("tickets");
 
-    const resultado = await db.runTransaction(async (transaction) => {
-        const contadorSnap = await transaction.get(contadorRef);
+    const ticketRef =
+        db
+            .collection("tickets")
+            .doc();
 
-        const ultimoNumero = contadorSnap.exists
-            ? contadorSnap.data().ultimoNumero || 0
-            : 0;
+    await db.runTransaction(
+        async (
+            transaction
+        ) => {
+            const contadorSnap =
+                await transaction.get(
+                    contadorRef
+                );
 
-        const numeroTicket = ultimoNumero + 1;
+            const ultimoNumero =
+                contadorSnap.exists
+                    ? Number(
+                        contadorSnap
+                            .data()
+                            .ultimoNumero ||
+                        0
+                    )
+                    : 0;
 
-        const ticketNuevo = {
-            numeroTicket,
+            const numeroTicket =
+                ultimoNumero + 1;
 
-            usuarioId: String(usuarioId || ""),
-            usuarioNombre: usuarioNombre || "Usuario",
+            const ticketNuevo = {
+                numeroTicket,
 
-            titulo: titulo.trim(),
-            descripcion: descripcion.trim(),
-            prioridad: String(prioridad || "media").toLowerCase(),
+                usuarioId:
+                    String(
+                        usuarioId ||
+                        ""
+                    ),
 
-            fechaVencimiento: fechaVencimiento || null,
-            expirationDate: fechaVencimiento
-                ? new Date(fechaVencimiento)
-                : null,
+                usuarioNombre:
+                    usuarioNombre ||
+                    "Usuario",
 
-            empleadoId: String(empleadoId || ""),
-            empleadoNombre: empleadoId
-                ? empleadoNombre
-                : "No asignado",
+                titulo:
+                    titulo.trim(),
 
-            clienteId: String(clienteId || ""),
-            clienteNombre: clienteId
-                ? clienteNombre
-                : "No asignado",
+                descripcion:
+                    String(
+                        descripcion ||
+                        ""
+                    ).trim(),
 
-            areaId: String(areaId || ""),
-            areaName: areaId
-                ? areaName
-                : "No asignada",
+                prioridad:
+                    String(
+                        prioridad ||
+                        "media"
+                    ).toLowerCase(),
 
-            archivoAdjunto: archivoAdjunto || null,
+                fechaVencimiento:
+                    fechaVencimiento ||
+                    null,
 
-            estadoTicketId: "1",
-            estadoNombre: "Abierto",
-            isCompleted: false,
+                expirationDate:
+                    fechaVencimiento
+                        ? new Date(
+                            fechaVencimiento
+                        )
+                        : null,
 
-            calendarEventId: "",
-            calendarEventLink: "",
-            calendarSyncStatus: "",
-            calendarSyncError: "",
-            calendarUpdatedAt: null,
+                empleadoId:
+                    String(
+                        empleadoId ||
+                        ""
+                    ),
 
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp()
-        };
+                empleadoNombre:
+                    empleadoId
+                        ? empleadoNombre ||
+                            "Empleado"
+                        : "No asignado",
 
-        transaction.set(ticketRef, ticketNuevo);
+                clienteId:
+                    String(
+                        clienteId ||
+                        ""
+                    ),
 
-        transaction.set(
-            contadorRef,
-            {
-                ultimoNumero: numeroTicket,
-                updatedAt: FieldValue.serverTimestamp()
-            },
-            { merge: true }
+                clienteNombre:
+                    clienteId
+                        ? clienteNombre ||
+                            "Cliente"
+                        : "No asignado",
+
+                areaId:
+                    String(
+                        areaId ||
+                        ""
+                    ),
+
+                areaName:
+                    areaId
+                        ? areaName ||
+                            "Área"
+                        : "No asignada",
+
+                archivoAdjunto:
+                    archivoAdjunto ||
+                    null,
+
+                googleDrive:
+                    googleDrive ||
+                    null,
+
+                estadoTicketId:
+                    "1",
+
+                estadoNombre:
+                    "Abierto",
+
+                isCompleted:
+                    false,
+
+                createdAt:
+                    FieldValue
+                        .serverTimestamp(),
+
+                updatedAt:
+                    FieldValue
+                        .serverTimestamp()
+            };
+
+            transaction.set(
+                ticketRef,
+                ticketNuevo
+            );
+
+            transaction.set(
+                contadorRef,
+                {
+                    ultimoNumero:
+                        numeroTicket,
+
+                    updatedAt:
+                        FieldValue
+                            .serverTimestamp()
+                },
+                {
+                    merge:
+                        true
+                }
+            );
+        }
+    );
+
+    const ticketCreadoSnap =
+        await ticketRef.get();
+
+    return mapTicket(
+        ticketCreadoSnap.id,
+        ticketCreadoSnap.data()
+    );
+}
+
+async function getTicketById(
+    ticketId
+) {
+    validateTicketId(
+        ticketId
+    );
+
+    const ticketSnap =
+        await db
+            .collection("tickets")
+            .doc(
+                String(ticketId)
+            )
+            .get();
+
+    if (!ticketSnap.exists) {
+        throw new Error(
+            "El ticket no existe."
         );
+    }
 
-        return {
-            id: ticketRef.id,
-            ...ticketNuevo
-        };
-    });
-
-    return resultado;
+    return mapTicket(
+        ticketSnap.id,
+        ticketSnap.data()
+    );
 }
 
 async function getAllTickets() {
-    const snapshot = await db
-        .collection("tickets")
-        .orderBy("createdAt", "desc")
-        .get();
-
-    return snapshot.docs.map((doc) => {
-        return mapTicket(doc.id, doc.data());
-    });
-}
-
-function getRolEmpleado(empleado) {
-    if (!empleado) {
-        return "";
-    }
-
-    if (Array.isArray(empleado.roles)) {
-        const rolAdmin = empleado.roles
-            .map((rol) => String(rol || "").trim().toLowerCase())
-            .find((rol) => rol === "admin");
-
-        return rolAdmin || "";
-    }
-
-    return String(
-        empleado.rol ||
-        empleado.role ||
-        empleado.tipoRol ||
-        empleado.tipo_usuario ||
-        ""
-    )
-        .trim()
-        .toLowerCase();
-}
-
-async function getEmpleadoSolicitante(datosUsuario) {
-    const usuarioId =
-        datosUsuario?.usuarioId ||
-        datosUsuario?.id ||
-        "";
-
-    const googleId =
-        datosUsuario?.googleId ||
-        datosUsuario?.google_id ||
-        "";
-
-    const correo =
-        datosUsuario?.correo ||
-        datosUsuario?.email ||
-        "";
-
-    if (usuarioId) {
-        const empleadoDoc = await db
-            .collection("employees")
-            .doc(String(usuarioId))
+    const snapshot =
+        await db
+            .collection("tickets")
+            .orderBy(
+                "createdAt",
+                "desc"
+            )
             .get();
 
-        if (empleadoDoc.exists) {
-            return {
-                id: empleadoDoc.id,
-                ...empleadoDoc.data()
-            };
+    return snapshot.docs.map(
+        (
+            doc
+        ) => {
+            return mapTicket(
+                doc.id,
+                doc.data()
+            );
         }
-    }
-
-    if (googleId) {
-        const snapshot = await db
-            .collection("employees")
-            .where("google_id", "==", String(googleId))
-            .limit(1)
-            .get();
-
-        if (!snapshot.empty) {
-            const empleadoDoc = snapshot.docs[0];
-
-            return {
-                id: empleadoDoc.id,
-                ...empleadoDoc.data()
-            };
-        }
-    }
-
-    if (correo) {
-        const snapshot = await db
-            .collection("employees")
-            .where("correo", "==", String(correo))
-            .limit(1)
-            .get();
-
-        if (!snapshot.empty) {
-            const empleadoDoc = snapshot.docs[0];
-
-            return {
-                id: empleadoDoc.id,
-                ...empleadoDoc.data()
-            };
-        }
-    }
-
-    return null;
+    );
 }
 
-async function checkAdminEmployee(datosUsuario) {
-    const empleado = await getEmpleadoSolicitante(
-        datosUsuario
+async function updateTicket(
+    ticketId,
+    datosTicket
+) {
+    validateTicketId(
+        ticketId
     );
 
-    if (!empleado) {
-        throw new Error("El usuario no existe como empleado.");
-    }
+    validateTicketData(
+        datosTicket
+    );
 
-    const rol = getRolEmpleado(empleado);
+    const ticketRef =
+        db
+            .collection("tickets")
+            .doc(
+                String(ticketId)
+            );
 
-    if (rol !== "admin") {
-        throw new Error("Solo los empleados con rol admin pueden borrar tickets.");
-    }
-
-    return true;
-}
-
-async function deleteTicket(ticketId, datosUsuario) {
-    if (!ticketId) {
-        throw new Error("Falta el id del ticket.");
-    }
-
-    await checkAdminEmployee(datosUsuario);
-
-    const ticketRef = db
-        .collection("tickets")
-        .doc(ticketId);
-
-    const ticketSnap = await ticketRef.get();
+    const ticketSnap =
+        await ticketRef.get();
 
     if (!ticketSnap.exists) {
-        throw new Error("El ticket no existe.");
+        throw new Error(
+            "El ticket no existe."
+        );
     }
 
-    await ticketRef.delete();
-
-    return {
-        id: ticketId,
-        eliminado: true
-    };
-}
-
-async function getTicketById(ticketId) {
-    if (!ticketId) {
-        throw new Error("Falta el id del ticket.");
-    }
-
-    const ticketRef = db.collection("tickets").doc(ticketId);
-    const ticketSnap = await ticketRef.get();
-
-    if (!ticketSnap.exists) {
-        throw new Error("El ticket no existe.");
-    }
-
-    return mapTicket(ticketSnap.id, ticketSnap.data());
-}
-
-async function updateTicket(ticketId, datosTicket) {
-    if (!ticketId) {
-        throw new Error("Falta el id del ticket.");
-    }
-
-    validateTicketData(datosTicket);
-
-    const ticketRef = db.collection("tickets").doc(ticketId);
-    const ticketSnap = await ticketRef.get();
-
-    if (!ticketSnap.exists) {
-        throw new Error("El ticket no existe.");
-    }
-
-    const estadoNormalizado =
-        String(datosTicket.estado || "abierto").toLowerCase();
-
-    const isCompleted =
-        estadoNormalizado === "completado";
-
-    const estadoNombre =
-        isCompleted
-            ? "Completado"
-            : "Abierto";
-
-    const estadoTicketId =
-        isCompleted
-            ? "2"
-            : "1";
+    const estado =
+        normalizeTicketStatus(
+            datosTicket.estado
+        );
 
     const empleadoId =
-        String(datosTicket.empleadoId || "");
+        String(
+            datosTicket.empleadoId ||
+            ""
+        );
 
     const clienteId =
-        String(datosTicket.clienteId || "");
+        String(
+            datosTicket.clienteId ||
+            ""
+        );
 
     const areaId =
-        String(datosTicket.areaId || "");
+        String(
+            datosTicket.areaId ||
+            ""
+        );
 
     const datosActualizar = {
         titulo:
-            datosTicket.titulo.trim(),
+            datosTicket
+                .titulo
+                .trim(),
 
         descripcion:
-            (datosTicket.descripcion || "").trim(),
+            String(
+                datosTicket.descripcion ||
+                ""
+            ).trim(),
 
         prioridad:
-            String(datosTicket.prioridad || "media").toLowerCase(),
+            String(
+                datosTicket.prioridad ||
+                "media"
+            ).toLowerCase(),
 
         fechaVencimiento:
-            datosTicket.fechaVencimiento || null,
+            datosTicket
+                .fechaVencimiento ||
+            null,
 
         expirationDate:
-            datosTicket.fechaVencimiento
-                ? new Date(datosTicket.fechaVencimiento)
+            datosTicket
+                .fechaVencimiento
+                ? new Date(
+                    datosTicket
+                        .fechaVencimiento
+                )
                 : null,
 
         empleadoId,
 
         empleadoNombre:
             empleadoId
-                ? datosTicket.empleadoNombre || "Empleado"
+                ? datosTicket
+                    .empleadoNombre ||
+                    "Empleado"
                 : "No asignado",
 
         clienteId,
 
         clienteNombre:
             clienteId
-                ? datosTicket.clienteNombre || "Cliente"
+                ? datosTicket
+                    .clienteNombre ||
+                    "Cliente"
                 : "No asignado",
 
         areaId,
 
         areaName:
             areaId
-                ? datosTicket.areaName || "Área"
+                ? datosTicket
+                    .areaName ||
+                    "Área"
                 : "No asignada",
 
-        estadoTicketId,
-        estadoNombre,
-        isCompleted,
+        estadoTicketId:
+            estado
+                .estadoTicketId,
+
+        estadoNombre:
+            estado
+                .estadoNombre,
+
+        isCompleted:
+            estado
+                .isCompleted,
 
         updatedAt:
-            FieldValue.serverTimestamp()
+            FieldValue
+                .serverTimestamp()
     };
 
-    if (datosTicket.archivoAdjunto) {
-        datosActualizar.archivoAdjunto =
-            datosTicket.archivoAdjunto;
+    if (
+        Object.prototype
+            .hasOwnProperty
+            .call(
+                datosTicket,
+                "archivoAdjunto"
+            ) &&
+        datosTicket.archivoAdjunto
+    ) {
+        datosActualizar
+            .archivoAdjunto =
+            datosTicket
+                .archivoAdjunto;
     }
 
-    await ticketRef.update(datosActualizar);
+    await ticketRef.update(
+        datosActualizar
+    );
 
     const ticketActualizadoSnap =
         await ticketRef.get();
@@ -380,42 +474,79 @@ async function updateTicket(ticketId, datosTicket) {
     );
 }
 
-async function updateTicketCalendarData(ticketId, datosCalendar) {
-    if (!ticketId) {
+async function updateTicketDriveData(
+    ticketId,
+    datosDrive
+) {
+    validateTicketId(
+        ticketId
+    );
+
+    if (
+        !datosDrive ||
+        typeof datosDrive !==
+        "object"
+    ) {
         throw new Error(
-            "Falta el id del ticket para actualizar Calendar."
+            "No se recibieron los datos de Google Drive."
         );
     }
 
-    const ticketRef = db.collection("tickets").doc(ticketId);
-    const ticketSnap = await ticketRef.get();
+    const ticketRef =
+        db
+            .collection("tickets")
+            .doc(
+                String(ticketId)
+            );
+
+    const ticketSnap =
+        await ticketRef.get();
 
     if (!ticketSnap.exists) {
-        throw new Error("El ticket no existe.");
+        throw new Error(
+            "El ticket no existe."
+        );
     }
 
     const datosActualizar = {
-        calendarEventId:
-            datosCalendar.calendarEventId || "",
-
-        calendarEventLink:
-            datosCalendar.calendarEventLink || "",
-
-        calendarSyncStatus:
-            datosCalendar.calendarSyncStatus || "",
-
-        calendarSyncError:
-            datosCalendar.calendarSyncError || "",
-
-        calendarUpdatedAt:
-            datosCalendar.calendarUpdatedAt ||
-            new Date().toISOString(),
-
         updatedAt:
-            FieldValue.serverTimestamp()
+            FieldValue
+                .serverTimestamp()
     };
 
-    await ticketRef.update(datosActualizar);
+    if (
+        Object.prototype
+            .hasOwnProperty
+            .call(
+                datosDrive,
+                "googleDrive"
+            )
+    ) {
+        datosActualizar
+            .googleDrive =
+            datosDrive
+                .googleDrive ||
+            null;
+    }
+
+    if (
+        Object.prototype
+            .hasOwnProperty
+            .call(
+                datosDrive,
+                "archivoAdjunto"
+            )
+    ) {
+        datosActualizar
+            .archivoAdjunto =
+            datosDrive
+                .archivoAdjunto ||
+            null;
+    }
+
+    await ticketRef.update(
+        datosActualizar
+    );
 
     const ticketActualizadoSnap =
         await ticketRef.get();
@@ -426,109 +557,249 @@ async function updateTicketCalendarData(ticketId, datosCalendar) {
     );
 }
 
-function mapTicket(id, data) {
+async function deleteTicketComments(
+    ticketRef
+) {
+    const BATCH_SIZE =
+        400;
+
+    while (true) {
+        const snapshot =
+            await ticketRef
+                .collection(
+                    "comments"
+                )
+                .limit(
+                    BATCH_SIZE
+                )
+                .get();
+
+        if (snapshot.empty) {
+            break;
+        }
+
+        const batch =
+            db.batch();
+
+        snapshot.docs.forEach(
+            (
+                document
+            ) => {
+                batch.delete(
+                    document.ref
+                );
+            }
+        );
+
+        await batch.commit();
+
+        if (
+            snapshot.size <
+            BATCH_SIZE
+        ) {
+            break;
+        }
+    }
+}
+
+async function deleteTicket(
+    ticketId
+) {
+    validateTicketId(
+        ticketId
+    );
+
+    const ticketRef =
+        db
+            .collection("tickets")
+            .doc(
+                String(ticketId)
+            );
+
+    const ticketSnap =
+        await ticketRef.get();
+
+    if (!ticketSnap.exists) {
+        throw new Error(
+            "El ticket no existe."
+        );
+    }
+
+    const ticket =
+        mapTicket(
+            ticketSnap.id,
+            ticketSnap.data()
+        );
+
+    await deleteTicketComments(
+        ticketRef
+    );
+
+    await ticketRef.delete();
+
+    return {
+        id:
+            ticket.id,
+
+        numeroTicket:
+            ticket.numeroTicket,
+
+        eliminado:
+            true
+    };
+}
+
+function mapTicket(
+    id,
+    data
+) {
+    const ticketData =
+        data ||
+        {};
+
     return {
         id,
 
         numeroTicket:
-            data.numeroTicket || "",
+            ticketData
+                .numeroTicket ||
+            "",
 
         usuarioId:
-            data.usuarioId ||
-            data.userCreatorId ||
+            ticketData
+                .usuarioId ||
+            ticketData
+                .userCreatorId ||
             "",
 
         usuarioNombre:
-            data.usuarioNombre ||
-            data.snapshots?.usuarioNombre ||
+            ticketData
+                .usuarioNombre ||
+            ticketData
+                .snapshots
+                ?.usuarioNombre ||
             "Usuario",
 
         titulo:
-            data.titulo || "",
+            ticketData
+                .titulo ||
+            "",
 
         descripcion:
-            data.descripcion || "",
+            ticketData
+                .descripcion ||
+            "",
 
         prioridad:
-            data.prioridad || "media",
+            ticketData
+                .prioridad ||
+            "media",
 
         fechaVencimiento:
-            data.fechaVencimiento || null,
+            ticketData
+                .fechaVencimiento ||
+            null,
 
         expirationDate:
-            data.expirationDate || null,
+            ticketData
+                .expirationDate ||
+            null,
 
         empleadoId:
-            data.empleadoId ||
-            data.assignedEmployeeId ||
+            ticketData
+                .empleadoId ||
+            ticketData
+                .assignedEmployeeId ||
             "",
 
         empleadoNombre:
-            data.empleadoNombre ||
-            data.snapshots?.empleadoNombre ||
+            ticketData
+                .empleadoNombre ||
+            ticketData
+                .snapshots
+                ?.empleadoNombre ||
             "No asignado",
 
         clienteId:
-            data.clienteId || "",
+            ticketData
+                .clienteId ||
+            "",
 
         clienteNombre:
-            data.clienteNombre ||
-            data.snapshots?.clienteNombre ||
+            ticketData
+                .clienteNombre ||
+            ticketData
+                .snapshots
+                ?.clienteNombre ||
             "No asignado",
 
         areaId:
-            data.areaId || "",
+            ticketData
+                .areaId ||
+            "",
 
         areaName:
-            data.areaName ||
-            data.snapshots?.areaName ||
+            ticketData
+                .areaName ||
+            ticketData
+                .snapshots
+                ?.areaName ||
             "No asignada",
 
         archivoAdjunto:
-            data.archivoAdjunto ||
-            data.archivo ||
-            data.attachment ||
+            ticketData
+                .archivoAdjunto ||
+            ticketData
+                .archivo ||
+            ticketData
+                .attachment ||
+            null,
+
+        googleDrive:
+            ticketData
+                .googleDrive ||
+            ticketData
+                .drive ||
+            ticketData
+                .driveStructure ||
             null,
 
         estadoTicketId:
-            data.estadoTicketId || "",
+            ticketData
+                .estadoTicketId ||
+            "",
 
         estadoNombre:
-            data.estadoNombre ||
-            data.snapshots?.estadoNombre ||
+            ticketData
+                .estadoNombre ||
+            ticketData
+                .snapshots
+                ?.estadoNombre ||
             "Abierto",
 
         isCompleted:
-            data.isCompleted || false,
-
-        calendarEventId:
-            data.calendarEventId || "",
-
-        calendarEventLink:
-            data.calendarEventLink || "",
-
-        calendarSyncStatus:
-            data.calendarSyncStatus || "",
-
-        calendarSyncError:
-            data.calendarSyncError || "",
-
-        calendarUpdatedAt:
-            data.calendarUpdatedAt || null,
+            Boolean(
+                ticketData
+                    .isCompleted
+            ),
 
         createdAt:
-            data.createdAt || null,
+            ticketData
+                .createdAt ||
+            null,
 
         updatedAt:
-            data.updatedAt || null
+            ticketData
+                .updatedAt ||
+            null
     };
 }
 
 module.exports = {
     createTicket,
-    getAllTickets,
     getTicketById,
+    getAllTickets,
     updateTicket,
-    deleteTicket,
-    updateTicketCalendarData
+    updateTicketDriveData,
+    deleteTicket
 };

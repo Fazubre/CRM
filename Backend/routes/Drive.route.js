@@ -3,7 +3,9 @@ const express = require("express");
 const {
     generateDriveAuthUrl,
     getTokensFromCode
-} = require("../services/GoogleDriveOAuth");
+} = require(
+    "../services/GoogleDrive/GoogleDriveOAuth"
+);
 
 const router = express.Router();
 

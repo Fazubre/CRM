@@ -1,911 +1,786 @@
-const fs = require("fs/promises");
+const fs = require(
+    "fs/promises"
+);
 
 const {
     createTicket,
-    getAllTickets,
     getTicketById,
+    getAllTickets,
     updateTicket,
-    updateTicketCalendarData,
+    updateTicketDriveData,
     deleteTicket
-} = require("../models/Ticket.model");
+} = require(
+    "../models/Ticket.model"
+);
 
 const {
-    getEmployeeById
-} = require("../models/Employee.model");
+    createTicketDriveStorage,
+    ensureTicketDriveStorage,
+    uploadTicketAttachment,
+    prepareTicketAttachmentReplacement,
+    deleteTicketAttachment,
+    deleteTicketDriveStorage
+} = require(
+    "../services/GoogleDrive/TicketDrive"
+);
 
-const {
-    sendTicketAssignmentEmail
-} = require("../services/GoogleMail");
-
-const {
-    uploadTicketFileWithOAuth,
-    uploadTicketFolderWithOAuth
-} = require("../services/GoogleDriveOAuth");
-
-const {
-    crearEventoTicket
-} = require("../services/GoogleCalendar");
-
-const MAX_FOLDER_TOTAL_SIZE = 100 * 1024 * 1024;
-
-function getUploadedFiles(req) {
-    if (!req.files || typeof req.files !== "object") {
+function getUploadedFiles(
+    req
+) {
+    if (
+        !req.files ||
+        typeof req.files !==
+        "object"
+    ) {
         return [];
     }
 
-    const archivoIndividual =
-        Array.isArray(req.files.archivo)
+    const individualFiles =
+        Array.isArray(
+            req.files.archivo
+        )
             ? req.files.archivo
             : [];
 
-    const archivosCarpeta =
-        Array.isArray(req.files.carpetaArchivos)
-            ? req.files.carpetaArchivos
+    const folderFiles =
+        Array.isArray(
+            req.files
+                .carpetaArchivos
+        )
+            ? req.files
+                .carpetaArchivos
             : [];
 
     return [
-        ...archivoIndividual,
-        ...archivosCarpeta
+        ...individualFiles,
+        ...folderFiles
     ];
 }
 
-async function eliminarArchivosTemporales(req) {
-    const archivos = getUploadedFiles(req);
+async function deleteTemporaryFiles(
+    req
+) {
+    const files =
+        getUploadedFiles(
+            req
+        );
 
     await Promise.all(
-        archivos.map(async (archivo) => {
-            if (!archivo?.path) {
-                return;
-            }
+        files.map(
+            async (
+                file
+            ) => {
+                if (!file?.path) {
+                    return;
+                }
 
-            try {
-                await fs.unlink(archivo.path);
+                try {
+                    await fs.unlink(
+                        file.path
+                    );
 
-                console.log(
-                    "Archivo temporal eliminado:",
-                    archivo.path
-                );
-            } catch (error) {
-                console.warn(
-                    "No se pudo eliminar el archivo temporal:",
-                    archivo.path,
-                    error.message
-                );
+                    console.log(
+                        "Archivo temporal eliminado:",
+                        file.path
+                    );
+                } catch (error) {
+                    console.warn(
+                        "No fue posible eliminar el archivo temporal:",
+                        file.path,
+                        error.message
+                    );
+                }
             }
-        })
+        )
     );
 }
 
-function parseRutasCarpeta(req) {
-    const rutasTexto =
-        req.body?.rutasCarpeta || "[]";
+function parseFolderPaths(
+    req,
+    folderFiles
+) {
+    if (
+        !Array.isArray(
+            folderFiles
+        ) ||
+        folderFiles.length ===
+        0
+    ) {
+        return [];
+    }
 
-    let rutasRelativas;
+    const pathsText =
+        req.body
+            ?.rutasCarpeta ||
+        "[]";
+
+    let relativePaths;
 
     try {
-        rutasRelativas =
-            JSON.parse(rutasTexto);
+        relativePaths =
+            JSON.parse(
+                pathsText
+            );
     } catch (error) {
         throw new Error(
             "No fue posible interpretar la estructura de la carpeta."
         );
     }
 
-    if (!Array.isArray(rutasRelativas)) {
+    if (
+        !Array.isArray(
+            relativePaths
+        )
+    ) {
         throw new Error(
             "La estructura de la carpeta no tiene un formato válido."
         );
     }
 
-    return rutasRelativas;
-}
-
-function calcularTamanoTotal(archivos) {
-    return archivos.reduce(
-        (total, archivo) => {
-            return total + Number(archivo.size || 0);
-        },
-        0
-    );
-}
-
-async function construirArchivoAdjuntoDrive(req) {
-    const archivoIndividual =
-        req.files?.archivo?.[0] || null;
-
-    const archivosCarpeta =
-        Array.isArray(req.files?.carpetaArchivos)
-            ? req.files.carpetaArchivos
-            : [];
-
     if (
-        archivoIndividual &&
-        archivosCarpeta.length > 0
-    ) {
-        throw new Error(
-            "Seleccione un archivo individual o una carpeta, no ambos."
-        );
-    }
-
-    if (
-        !archivoIndividual &&
-        archivosCarpeta.length === 0
-    ) {
-        return null;
-    }
-
-    const refreshToken =
-        process.env.GOOGLE_DRIVE_REFRESH_TOKEN;
-
-    if (!refreshToken) {
-        throw new Error(
-            "Falta GOOGLE_DRIVE_REFRESH_TOKEN en las variables de entorno."
-        );
-    }
-
-    if (archivoIndividual) {
-        console.log(
-            "Subiendo archivo individual a Google Drive:",
-            {
-                originalname:
-                    archivoIndividual.originalname,
-
-                mimetype:
-                    archivoIndividual.mimetype,
-
-                size:
-                    archivoIndividual.size,
-
-                path:
-                    archivoIndividual.path
-            }
-        );
-
-        const archivoDrive =
-            await uploadTicketFileWithOAuth(
-                archivoIndividual,
-                refreshToken
-            );
-
-        if (!archivoDrive?.id) {
-            throw new Error(
-                "Google Drive no devolvió la información del archivo."
-            );
-        }
-
-        return {
-            tipoAdjunto: "archivo",
-
-            id:
-                archivoDrive.id,
-
-            googleDriveId:
-                archivoDrive.id,
-
-            nombre:
-                archivoDrive.nombre ||
-                archivoIndividual.originalname,
-
-            tipo:
-                archivoIndividual.mimetype,
-
-            tamano:
-                archivoIndividual.size,
-
-            cantidadArchivos: 1,
-
-            webViewLink:
-                archivoDrive.webViewLink || "",
-
-            webContentLink:
-                archivoDrive.webContentLink || "",
-
-            url:
-                archivoDrive.webViewLink || "",
-
-            enlace:
-                archivoDrive.webViewLink || "",
-
-            fechaSubida:
-                new Date().toISOString()
-        };
-    }
-
-    const tamanoTotal =
-        calcularTamanoTotal(
-            archivosCarpeta
-        );
-
-    if (
-        tamanoTotal >
-        MAX_FOLDER_TOTAL_SIZE
-    ) {
-        throw new Error(
-            "La carpeta no puede superar los 100 MB en total."
-        );
-    }
-
-    const rutasRelativas =
-        parseRutasCarpeta(req);
-
-    if (
-        rutasRelativas.length !==
-        archivosCarpeta.length
+        relativePaths.length !==
+        folderFiles.length
     ) {
         throw new Error(
             "La cantidad de rutas no coincide con la cantidad de archivos recibidos."
         );
     }
 
-    console.log(
-        "Subiendo carpeta a Google Drive:",
-        {
-            cantidadArchivos:
-                archivosCarpeta.length,
+    return relativePaths;
+}
 
-            tamanoTotal,
+function getAttachmentSelection(
+    req
+) {
+    const individualFile =
+        req.files
+            ?.archivo
+            ?.[0] ||
+        null;
 
-            primeraRuta:
-                rutasRelativas[0] || ""
-        }
-    );
+    const folderFiles =
+        Array.isArray(
+            req.files
+                ?.carpetaArchivos
+        )
+            ? req.files
+                .carpetaArchivos
+            : [];
 
-    const carpetaDrive =
-        await uploadTicketFolderWithOAuth(
-            archivosCarpeta,
-            rutasRelativas,
-            refreshToken
-        );
-
-    if (!carpetaDrive?.id) {
+    if (
+        individualFile &&
+        folderFiles.length > 0
+    ) {
         throw new Error(
-            "Google Drive no devolvió la información de la carpeta."
+            "Seleccione un archivo individual o una carpeta, no ambos."
         );
     }
 
     return {
-        tipoAdjunto: "carpeta",
+        individualFile,
 
-        id:
-            carpetaDrive.id,
+        folderFiles,
 
-        googleDriveId:
-            carpetaDrive.id,
-
-        nombre:
-            carpetaDrive.nombre ||
-            "Carpeta del ticket",
-
-        tipo:
-            "application/vnd.google-apps.folder",
-
-        cantidadArchivos:
-            carpetaDrive.cantidadArchivos ||
-            archivosCarpeta.length,
-
-        tamano:
-            tamanoTotal,
-
-        webViewLink:
-            carpetaDrive.webViewLink || "",
-
-        webContentLink: "",
-
-        url:
-            carpetaDrive.webViewLink || "",
-
-        enlace:
-            carpetaDrive.webViewLink || "",
-
-        fechaSubida:
-            new Date().toISOString()
+        relativePaths:
+            parseFolderPaths(
+                req,
+                folderFiles
+            )
     };
 }
 
-async function intentarEnviarCorreoAsignacion(ticket) {
-    if (!ticket?.empleadoId) {
-        return {
-            enviado: false,
-            motivo: "El ticket no tiene empleado asignado."
-        };
-    }
+function buildCreateTicketData(
+    req
+) {
+    return {
+        usuarioId:
+            req.body
+                ?.usuarioId ||
+            "",
 
-    try {
-        const empleado =
-            await getEmployeeById(ticket.empleadoId);
+        usuarioNombre:
+            req.body
+                ?.usuarioNombre ||
+            "Usuario",
 
-        if (!empleado?.correo) {
-            return {
-                enviado: false,
-                motivo: "El empleado no tiene correo registrado."
-            };
-        }
+        titulo:
+            req.body
+                ?.titulo ||
+            "",
 
-        return await sendTicketAssignmentEmail({
-            employee: empleado,
-            ticket
-        });
-    } catch (error) {
-        console.error(
-            "Error enviando correo de asignación:",
-            error
-        );
+        descripcion:
+            req.body
+                ?.descripcion ||
+            "",
 
-        return {
-            enviado: false,
-            motivo:
-                error.message ||
-                "No fue posible enviar el correo de asignación."
-        };
-    }
+        prioridad:
+            req.body
+                ?.prioridad ||
+            "media",
+
+        fechaVencimiento:
+            req.body
+                ?.fechaVencimiento ||
+            null,
+
+        empleadoId:
+            req.body
+                ?.empleadoId ||
+            "",
+
+        empleadoNombre:
+            req.body
+                ?.empleadoNombre ||
+            "No asignado",
+
+        clienteId:
+            req.body
+                ?.clienteId ||
+            "",
+
+        clienteNombre:
+            req.body
+                ?.clienteNombre ||
+            "No asignado",
+
+        areaId:
+            req.body
+                ?.areaId ||
+            "",
+
+        areaName:
+            req.body
+                ?.areaName ||
+            "No asignada",
+
+        archivoAdjunto:
+            null,
+
+        googleDrive:
+            null
+    };
 }
 
-async function guardarErrorCalendarSiEsPosible(ticket, error) {
-    if (!ticket?.id) {
-        return;
-    }
+function buildUpdateTicketData(
+    req
+) {
+    return {
+        titulo:
+            req.body
+                ?.titulo ||
+            "",
 
-    try {
-        await updateTicketCalendarData(ticket.id, {
-            calendarSyncStatus: "error",
-            calendarSyncError:
-                error.message ||
-                "No fue posible crear el evento en Google Calendar.",
-            calendarUpdatedAt: new Date().toISOString()
-        });
-    } catch (errorGuardando) {
-        console.error(
-            "No fue posible guardar el error de Calendar en el ticket:",
-            errorGuardando
-        );
-    }
+        descripcion:
+            req.body
+                ?.descripcion ||
+            "",
+
+        prioridad:
+            req.body
+                ?.prioridad ||
+            "media",
+
+        estado:
+            req.body
+                ?.estado ||
+            "abierto",
+
+        fechaVencimiento:
+            req.body
+                ?.fechaVencimiento ||
+            null,
+
+        empleadoId:
+            req.body
+                ?.empleadoId ||
+            "",
+
+        empleadoNombre:
+            req.body
+                ?.empleadoNombre ||
+            "No asignado",
+
+        clienteId:
+            req.body
+                ?.clienteId ||
+            "",
+
+        clienteNombre:
+            req.body
+                ?.clienteNombre ||
+            "No asignado",
+
+        areaId:
+            req.body
+                ?.areaId ||
+            "",
+
+        areaName:
+            req.body
+                ?.areaName ||
+            "No asignada"
+    };
 }
 
-async function intentarCrearEventoCalendar(ticket) {
-    if (!ticket?.empleadoId) {
-        return {
-            creado: false,
-            motivo: "El ticket no tiene empleado asignado."
-        };
+function getAttachmentMessage(
+    attachment,
+    editMode = false
+) {
+    if (
+        attachment
+            ?.tipoAdjunto ===
+        "carpeta"
+    ) {
+        return editMode
+            ? "Ticket y carpeta actualizados correctamente."
+            : "Ticket y carpeta creados correctamente.";
     }
 
-    if (!ticket?.fechaVencimiento) {
-        return {
-            creado: false,
-            motivo: "El ticket no tiene fecha de vencimiento."
-        };
+    if (
+        attachment
+            ?.tipoAdjunto ===
+        "archivo"
+    ) {
+        return editMode
+            ? "Ticket y archivo actualizados correctamente."
+            : "Ticket y archivo creados correctamente.";
     }
+
+    return editMode
+        ? "Ticket actualizado correctamente."
+        : "Ticket creado correctamente.";
+}
+
+async function postTicket(
+    req,
+    res
+) {
+    let ticketCreated =
+        null;
+
+    let driveStructure =
+        null;
 
     try {
-        const empleado =
-            await getEmployeeById(ticket.empleadoId);
+        const attachmentSelection =
+            getAttachmentSelection(
+                req
+            );
 
-        const refreshToken =
-            empleado?.google_calendar?.refresh_token || "";
+        const ticketData =
+            buildCreateTicketData(
+                req
+            );
 
-        const calendarConectado =
-            empleado?.google_calendar?.conectado === true;
+        ticketCreated =
+            await createTicket(
+                ticketData
+            );
 
-        if (!calendarConectado || !refreshToken) {
-            return {
-                creado: false,
-                motivo: "El empleado no tiene Google Calendar conectado."
-            };
-        }
+        driveStructure =
+            await createTicketDriveStorage(
+                ticketCreated
+            );
 
-        const evento =
-            await crearEventoTicket({
-                refreshToken,
-                titulo: ticket.titulo,
-                descripcion: construirDescripcionEvento(ticket),
-                fechaVencimiento: ticket.fechaVencimiento
+        const attachment =
+            await uploadTicketAttachment({
+                individualFile:
+                    attachmentSelection
+                        .individualFile,
+
+                folderFiles:
+                    attachmentSelection
+                        .folderFiles,
+
+                relativePaths:
+                    attachmentSelection
+                        .relativePaths,
+
+                attachmentFolderId:
+                    driveStructure
+                        .ticketAttachmentFolder
+                        .id
             });
 
-        await updateTicketCalendarData(ticket.id, {
-            calendarEventId:
-                evento.id || "",
+        const finalTicket =
+            await updateTicketDriveData(
+                ticketCreated.id,
+                {
+                    googleDrive:
+                        driveStructure,
 
-            calendarEventLink:
-                evento.htmlLink || "",
-
-            calendarSyncStatus:
-                "created",
-
-            calendarSyncError:
-                "",
-
-            calendarUpdatedAt:
-                new Date().toISOString()
-        });
-
-        return {
-            creado: true,
-            eventId: evento.id || "",
-            eventLink: evento.htmlLink || ""
-        };
-    } catch (error) {
-        console.error(
-            "Error creando evento de Google Calendar:",
-            error
-        );
-
-        await guardarErrorCalendarSiEsPosible(
-            ticket,
-            error
-        );
-
-        return {
-            creado: false,
-            motivo:
-                error.message ||
-                "No fue posible crear el evento en Google Calendar."
-        };
-    }
-}
-
-function construirDescripcionEvento(ticket) {
-    return [
-        "Ticket asignado desde CRM Voyager.",
-        "",
-        `Ticket: #${ticket.numeroTicket || ""}`,
-        `Título: ${ticket.titulo || "Sin título"}`,
-        `Cliente: ${ticket.clienteNombre || "No asignado"}`,
-        `Área: ${ticket.areaName || "No asignada"}`,
-        `Prioridad: ${ticket.prioridad || "media"}`,
-        `Empleado asignado: ${ticket.empleadoNombre || "No asignado"}`,
-        "",
-        `Descripción: ${ticket.descripcion || "Sin descripción"}`
-    ].join("\n");
-}
-
-function debeEnviarCorreoPorCambioEmpleado(
-    ticketAnterior,
-    ticketActualizado
-) {
-    const empleadoAnteriorId =
-        String(ticketAnterior?.empleadoId || "");
-
-    const empleadoNuevoId =
-        String(ticketActualizado?.empleadoId || "");
-
-    if (!empleadoNuevoId) {
-        return false;
-    }
-
-    return empleadoAnteriorId !== empleadoNuevoId;
-}
-
-function debeCrearEventoCalendar(
-    ticketAnterior,
-    ticketActualizado
-) {
-    const empleadoAnteriorId =
-        String(ticketAnterior?.empleadoId || "");
-
-    const empleadoNuevoId =
-        String(ticketActualizado?.empleadoId || "");
-
-    const fechaAnterior =
-        String(ticketAnterior?.fechaVencimiento || "");
-
-    const fechaNueva =
-        String(ticketActualizado?.fechaVencimiento || "");
-
-    if (!empleadoNuevoId || !fechaNueva) {
-        return false;
-    }
-
-    if (empleadoAnteriorId !== empleadoNuevoId) {
-        return true;
-    }
-
-    if (fechaAnterior !== fechaNueva) {
-        return true;
-    }
-
-    if (!ticketAnterior?.calendarEventId) {
-        return true;
-    }
-
-    return false;
-}
-
-async function postTicket(req, res) {
-    try {
-        console.log(
-            "TICKET CONTROLLER VERSION: 2026-06-08-CALENDAR-V1"
-        );
-
-        console.log(
-            "Content-Type:",
-            req.headers["content-type"]
-        );
-
-        console.log(
-            "Datos recibidos:",
-            req.body
-        );
-
-        console.log(
-            "Archivos recibidos:",
-            {
-                archivoIndividual:
-                    req.files?.archivo?.length || 0,
-
-                archivosCarpeta:
-                    req.files?.carpetaArchivos?.length || 0
-            }
-        );
-
-        const archivoAdjunto =
-            await construirArchivoAdjuntoDrive(req);
-
-        const datosTicket = {
-            usuarioId:
-                req.body?.usuarioId || "",
-
-            usuarioNombre:
-                req.body?.usuarioNombre ||
-                "Usuario",
-
-            titulo:
-                req.body?.titulo || "",
-
-            descripcion:
-                req.body?.descripcion || "",
-
-            prioridad:
-                req.body?.prioridad ||
-                "media",
-
-            fechaVencimiento:
-                req.body?.fechaVencimiento ||
-                null,
-
-            empleadoId:
-                req.body?.empleadoId || "",
-
-            empleadoNombre:
-                req.body?.empleadoNombre ||
-                "No asignado",
-
-            clienteId:
-                req.body?.clienteId || "",
-
-            clienteNombre:
-                req.body?.clienteNombre ||
-                "No asignado",
-
-            areaId:
-                req.body?.areaId || "",
-
-            areaName:
-                req.body?.areaName ||
-                "No asignada",
-
-            archivoAdjunto
-        };
-
-        console.log(
-            "Objeto enviado al modelo:",
-            datosTicket
-        );
-
-        const ticketCreado =
-            await createTicket(
-                datosTicket
+                    archivoAdjunto:
+                        attachment
+                }
             );
 
-        const resultadoCorreo =
-            await intentarEnviarCorreoAsignacion(
-                ticketCreado
-            );
+        return res
+            .status(201)
+            .json({
+                ok:
+                    true,
 
-        const resultadoCalendar =
-            await intentarCrearEventoCalendar(
-                ticketCreado
-            );
+                mensaje:
+                    getAttachmentMessage(
+                        attachment,
+                        false
+                    ),
 
-        return res.status(201).json({
-            ok: true,
-
-            version:
-                "2026-06-08-CALENDAR-V1",
-
-            mensaje:
-                archivoAdjunto?.tipoAdjunto === "carpeta"
-                    ? "Ticket y carpeta creados correctamente."
-                    : archivoAdjunto?.tipoAdjunto === "archivo"
-                        ? "Ticket y archivo creados correctamente."
-                        : "Ticket creado correctamente.",
-
-            correoAsignacion:
-                resultadoCorreo,
-
-            calendar:
-                resultadoCalendar,
-
-            ticket:
-                ticketCreado
-        });
+                ticket:
+                    finalTicket
+            });
     } catch (error) {
         console.error(
             "Error creando ticket:",
             error
         );
 
-        console.error(
-            "Stack:",
-            error.stack
-        );
+        if (
+            driveStructure
+                ?.ticketFolder
+                ?.id
+        ) {
+            try {
+                await deleteTicketDriveStorage({
+                    googleDrive:
+                        driveStructure
+                });
+            } catch (
+                driveCleanupError
+            ) {
+                console.error(
+                    "No fue posible eliminar la carpeta creada después del error:",
+                    driveCleanupError.message
+                );
+            }
+        }
 
-        return res.status(400).json({
-            ok: false,
+        if (ticketCreated?.id) {
+            try {
+                await deleteTicket(
+                    ticketCreated.id
+                );
+            } catch (
+                ticketCleanupError
+            ) {
+                console.error(
+                    "No fue posible eliminar el ticket incompleto:",
+                    ticketCleanupError.message
+                );
+            }
+        }
 
-            version:
-                "2026-06-08-CALENDAR-V1",
+        return res
+            .status(400)
+            .json({
+                ok:
+                    false,
 
-            mensaje:
-                error.message ||
-                "No fue posible crear el ticket."
-        });
+                mensaje:
+                    error.message ||
+                    "No fue posible crear el ticket."
+            });
     } finally {
-        await eliminarArchivosTemporales(req);
+        await deleteTemporaryFiles(
+            req
+        );
     }
 }
 
-async function getTickets(req, res) {
+async function getTickets(
+    req,
+    res
+) {
     try {
         const tickets =
             await getAllTickets();
 
-        return res.status(200).json({
-            ok: true,
-            tickets
-        });
+        return res
+            .status(200)
+            .json({
+                ok:
+                    true,
+
+                tickets
+            });
     } catch (error) {
         console.error(
             "Error obteniendo tickets:",
             error
         );
 
-        return res.status(500).json({
-            ok: false,
+        return res
+            .status(500)
+            .json({
+                ok:
+                    false,
 
-            mensaje:
-                error.message ||
-                "No fue posible obtener los tickets."
-        });
+                mensaje:
+                    error.message ||
+                    "No fue posible obtener los tickets."
+            });
     }
 }
 
-async function putTicket(req, res) {
+async function getTicket(
+    req,
+    res
+) {
     try {
-        console.log(
-            "PUT TICKET CONTROLLER VERSION: 2026-06-08-CALENDAR-V1"
-        );
+        const {
+            id
+        } = req.params;
 
-        console.log(
-            "Content-Type:",
-            req.headers["content-type"]
-        );
-
-        console.log(
-            "Datos recibidos:",
-            req.body
-        );
-
-        console.log(
-            "Archivos recibidos:",
-            {
-                archivoIndividual:
-                    req.files?.archivo?.length || 0,
-
-                archivosCarpeta:
-                    req.files?.carpetaArchivos?.length || 0
-            }
-        );
-
-        const { id } = req.params;
-
-        const ticketAnterior =
-            await getTicketById(id);
-
-        const archivoAdjunto =
-            await construirArchivoAdjuntoDrive(req);
-
-        const datosTicket = {
-            titulo:
-                req.body?.titulo || "",
-
-            descripcion:
-                req.body?.descripcion || "",
-
-            prioridad:
-                req.body?.prioridad ||
-                "media",
-
-            estado:
-                req.body?.estado ||
-                "abierto",
-
-            fechaVencimiento:
-                req.body?.fechaVencimiento ||
-                null,
-
-            empleadoId:
-                req.body?.empleadoId || "",
-
-            empleadoNombre:
-                req.body?.empleadoNombre ||
-                "No asignado",
-
-            clienteId:
-                req.body?.clienteId || "",
-
-            clienteNombre:
-                req.body?.clienteNombre ||
-                "No asignado",
-
-            areaId:
-                req.body?.areaId || "",
-
-            areaName:
-                req.body?.areaName ||
-                "No asignada",
-
-            archivoAdjunto
-        };
-
-        const ticketActualizado =
-            await updateTicket(
-                id,
-                datosTicket
+        const ticket =
+            await getTicketById(
+                id
             );
 
-        let resultadoCorreo = {
-            enviado: false,
-            motivo: "El empleado asignado no cambió."
-        };
+        const storageResult =
+            await ensureTicketDriveStorage(
+                ticket
+            );
+
+        let finalTicket =
+            ticket;
 
         if (
-            debeEnviarCorreoPorCambioEmpleado(
-                ticketAnterior,
-                ticketActualizado
-            )
+            storageResult.created
         ) {
-            resultadoCorreo =
-                await intentarEnviarCorreoAsignacion(
-                    ticketActualizado
+            finalTicket =
+                await updateTicketDriveData(
+                    id,
+                    {
+                        googleDrive:
+                            storageResult
+                                .googleDrive,
+
+                        archivoAdjunto:
+                            storageResult
+                                .archivoAdjunto
+                    }
                 );
         }
 
-        let resultadoCalendar = {
-            creado: false,
-            motivo: "No hubo cambios relevantes para Google Calendar."
-        };
+        return res
+            .status(200)
+            .json({
+                ok:
+                    true,
+
+                ticket:
+                    finalTicket
+            });
+    } catch (error) {
+        console.error(
+            "Error obteniendo ticket:",
+            error
+        );
+
+        const status =
+            error.message ===
+            "El ticket no existe."
+                ? 404
+                : 500;
+
+        return res
+            .status(status)
+            .json({
+                ok:
+                    false,
+
+                mensaje:
+                    error.message ||
+                    "No fue posible obtener el ticket."
+            });
+    }
+}
+
+async function putTicket(
+    req,
+    res
+) {
+    let replacementResult =
+        null;
+
+    try {
+        const {
+            id
+        } = req.params;
+
+        const attachmentSelection =
+            getAttachmentSelection(
+                req
+            );
+
+        const currentTicket =
+            await getTicketById(
+                id
+            );
+
+        const storageResult =
+            await ensureTicketDriveStorage(
+                currentTicket
+            );
 
         if (
-            debeCrearEventoCalendar(
-                ticketAnterior,
-                ticketActualizado
-            )
+            storageResult.created
         ) {
-            resultadoCalendar =
-                await intentarCrearEventoCalendar(
-                    ticketActualizado
-                );
+            await updateTicketDriveData(
+                id,
+                {
+                    googleDrive:
+                        storageResult
+                            .googleDrive,
+
+                    archivoAdjunto:
+                        storageResult
+                            .archivoAdjunto
+                }
+            );
         }
 
-        return res.status(200).json({
-            ok: true,
+        const currentAttachment =
+            storageResult
+                .archivoAdjunto ||
+            currentTicket
+                .archivoAdjunto ||
+            null;
 
-            version:
-                "2026-06-08-CALENDAR-V1",
+        replacementResult =
+            await prepareTicketAttachmentReplacement({
+                currentAttachment,
 
-            mensaje:
-                archivoAdjunto?.tipoAdjunto === "carpeta"
-                    ? "Ticket y carpeta actualizados correctamente."
-                    : archivoAdjunto?.tipoAdjunto === "archivo"
-                        ? "Ticket y archivo actualizados correctamente."
-                        : "Ticket actualizado correctamente.",
+                individualFile:
+                    attachmentSelection
+                        .individualFile,
 
-            correoAsignacion:
-                resultadoCorreo,
+                folderFiles:
+                    attachmentSelection
+                        .folderFiles,
 
-            calendar:
-                resultadoCalendar,
+                relativePaths:
+                    attachmentSelection
+                        .relativePaths,
 
-            ticket:
-                ticketActualizado
-        });
+                attachmentFolderId:
+                    storageResult
+                        .googleDrive
+                        .ticketAttachmentFolder
+                        .id
+            });
+
+        const ticketData = {
+            ...buildUpdateTicketData(
+                req
+            ),
+
+            archivoAdjunto:
+                replacementResult
+                    .archivoAdjunto
+        };
+
+        let updatedTicket;
+
+        try {
+            updatedTicket =
+                await updateTicket(
+                    id,
+                    ticketData
+                );
+        } catch (updateError) {
+            if (
+                replacementResult
+                    .reemplazado
+            ) {
+                try {
+                    await deleteTicketAttachment(
+                        replacementResult
+                            .archivoAdjunto
+                    );
+                } catch (
+                    cleanupError
+                ) {
+                    console.error(
+                        "No fue posible eliminar el nuevo adjunto después del error:",
+                        cleanupError.message
+                    );
+                }
+            }
+
+            throw updateError;
+        }
+
+        if (
+            replacementResult
+                .reemplazado &&
+            replacementResult
+                .adjuntoAnteriorId
+        ) {
+            try {
+                await deleteTicketAttachment(
+                    replacementResult
+                        .adjuntoAnteriorId
+                );
+            } catch (error) {
+                console.warn(
+                    "El ticket fue actualizado, pero no fue posible eliminar el adjunto anterior:",
+                    error.message
+                );
+            }
+        }
+
+        return res
+            .status(200)
+            .json({
+                ok:
+                    true,
+
+                mensaje:
+                    getAttachmentMessage(
+                        replacementResult
+                            .reemplazado
+                            ? replacementResult
+                                .archivoAdjunto
+                            : null,
+                        true
+                    ),
+
+                ticket:
+                    updatedTicket
+            });
     } catch (error) {
         console.error(
             "Error actualizando ticket:",
             error
         );
 
-        console.error(
-            "Stack:",
-            error.stack
-        );
+        const status =
+            error.message ===
+            "El ticket no existe."
+                ? 404
+                : 400;
 
-        return res.status(400).json({
-            ok: false,
+        return res
+            .status(status)
+            .json({
+                ok:
+                    false,
 
-            version:
-                "2026-06-08-CALENDAR-V1",
-
-            mensaje:
-                error.message ||
-                "No fue posible actualizar el ticket."
-        });
+                mensaje:
+                    error.message ||
+                    "No fue posible actualizar el ticket."
+            });
     } finally {
-        await eliminarArchivosTemporales(req);
-    }
-}
-
-async function removeTicket(req, res) {
-    try {
-        const { id } = req.params;
-
-        const datosUsuario = {
-            usuarioId:
-                req.body?.usuarioId ||
-                "",
-
-            googleId:
-                req.body?.googleId ||
-                req.body?.google_id ||
-                "",
-
-            correo:
-                req.body?.correo ||
-                req.body?.email ||
-                ""
-        };
-
-        const resultado = await deleteTicket(
-            id,
-            datosUsuario
+        await deleteTemporaryFiles(
+            req
         );
-
-        return res.status(200).json({
-            ok: true,
-            mensaje: "Ticket eliminado correctamente.",
-            resultado
-        });
-    } catch (error) {
-        console.error(
-            "Error eliminando ticket:",
-            error
-        );
-
-        let status = 400;
-
-        if (error.message === "El ticket no existe.") {
-            status = 404;
-        }
-
-        if (
-            error.message === "El usuario no existe como empleado." ||
-            error.message === "Solo los empleados con rol admin pueden borrar tickets."
-        ) {
-            status = 403;
-        }
-
-        return res.status(status).json({
-            ok: false,
-            mensaje:
-                error.message ||
-                "No fue posible eliminar el ticket."
-        });
     }
 }
 
 module.exports = {
     postTicket,
     getTickets,
-    putTicket,
-    removeTicket
+    getTicket,
+    putTicket
 };
