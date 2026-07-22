@@ -88,6 +88,8 @@ async function createDriveFolderWithOAuth(
 async function createTicketDriveStructureWithOAuth({
     ticketId,
     ticketNumber,
+    ticketTitle,
+    employeeName,
     refreshToken
 }) {
     if (!ticketId) {
@@ -104,7 +106,9 @@ async function createTicketDriveStructureWithOAuth({
     const ticketFolderName =
         buildTicketFolderName(
             ticketId,
-            ticketNumber
+            ticketNumber,
+            ticketTitle,
+            employeeName
         );
 
     const ticketFolder =

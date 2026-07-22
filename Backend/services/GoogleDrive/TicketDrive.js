@@ -193,16 +193,24 @@ async function createTicketDriveStorage(
         getDriveRefreshToken();
 
     const driveStructure =
-        await createTicketDriveStructureWithOAuth({
-            ticketId:
-                ticket.id,
+    await createTicketDriveStructureWithOAuth({
+        ticketId:
+            ticket.id,
 
-            ticketNumber:
-                ticket.numeroTicket ||
-                "",
+        ticketNumber:
+            ticket.numeroTicket ||
+            "",
 
-            refreshToken
-        });
+        ticketTitle:
+            ticket.titulo ||
+            "Sin titulo",
+
+        employeeName:
+            ticket.empleadoNombre ||
+            "No asignado",
+
+        refreshToken
+    });
 
     return normalizeDriveStructure(
         driveStructure

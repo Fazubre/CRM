@@ -45,23 +45,42 @@ function normalizeRelativePath(
 
 function buildTicketFolderName(
     ticketId,
-    ticketNumber
+    ticketNumber,
+    ticketTitle,
+    employeeName
 ) {
-    if (
+    const number =
         ticketNumber !== null &&
         ticketNumber !== undefined &&
         ticketNumber !== ""
-    ) {
-        return `Ticket-${sanitizeDriveName(
-            ticketNumber,
-            "SinNumero"
-        )}`;
-    }
+            ? ticketNumber
+            : ticketId || "Sin numero";
 
-    return `Ticket-${sanitizeDriveName(
-        ticketId,
-        "SinId"
-    )}`;
+    const title =
+        sanitizeDriveName(
+            ticketTitle,
+            "Sin titulo"
+        ).slice(
+            0,
+            80
+        );
+
+    const assignedEmployee =
+        sanitizeDriveName(
+            employeeName,
+            "No asignado"
+        ).slice(
+            0,
+            50
+        );
+
+    return [
+        `Ticket ${number}`,
+        title,
+        assignedEmployee
+    ].join(
+        " - "
+    );
 }
 
 function mapDriveFolder(

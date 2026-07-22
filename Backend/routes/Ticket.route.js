@@ -2,6 +2,10 @@ const express = require(
     "express"
 );
 
+const ticketCommentRoutes =
+    require(
+        "./TicketComment.route"
+    );
 const {
     postTicket,
     getTickets,
