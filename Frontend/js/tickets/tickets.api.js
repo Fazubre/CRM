@@ -8,7 +8,7 @@ import {
 const COMMENTS_API_BASE_URL =
     window.CRM_CONFIG
         ?.API_BASE_URL ||
-    "https://crm-c40k.onrender.com";
+    window.location.origin;
 
 const COMMENTS_TICKETS_URL =
     `${COMMENTS_API_BASE_URL}/tickets`;

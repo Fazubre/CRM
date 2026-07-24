@@ -47,7 +47,7 @@ const MODAL_CONFIG = [
             "modalAgregarTicket",
 
         ruta:
-            "./components/Tickets/modal-add-ticket.html"
+            `${COMPONENTS_BASE_URL}/Tickets/modal-add-ticket.html`
     },
     {
         contenedorId:
@@ -57,10 +57,7 @@ const MODAL_CONFIG = [
             "modalVerTicket",
 
         ruta:
-            (
-                `${COMPONENTS_BASE_URL}/` +
-                "Tickets/modal-view-ticket.html"
-            )
+            `${COMPONENTS_BASE_URL}/Tickets/modal-view-ticket.html`
     },
     {
         contenedorId:
@@ -70,7 +67,7 @@ const MODAL_CONFIG = [
             "modalEditarTicket",
 
         ruta:
-            "./components/Tickets/modal-edit-ticket.html"
+            `${COMPONENTS_BASE_URL}/Tickets/modal-edit-ticket.html`
     },
     {
         contenedorId:
@@ -80,10 +77,7 @@ const MODAL_CONFIG = [
             "modalComentariosTicket",
 
         ruta:
-            (
-                `${COMPONENTS_BASE_URL}/` +
-                "Tickets/modal-comments-ticket.html"
-            )
+            `${COMPONENTS_BASE_URL}/Tickets/modal-comments-ticket.html`
     }
 ];
 

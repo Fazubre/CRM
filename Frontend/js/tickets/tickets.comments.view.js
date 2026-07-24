@@ -413,7 +413,7 @@ function handleUnauthorized(
     const loginUrl =
         window.CRM_CONFIG
             ?.LOGIN_URL ||
-        "/CRM/Views/LogIn.html";
+        "/Views/LogIn.html";
 
     window.location.replace(
         loginUrl
