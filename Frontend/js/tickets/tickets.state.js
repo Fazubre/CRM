@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-    "https://crm-c40k.onrender.com";
+    window.location.origin;
 
 export const TICKETS_URL =
     `${API_BASE_URL}/tickets`;
@@ -14,7 +14,7 @@ export const AREAS_URL =
     `${API_BASE_URL}/areas`;
 
 export const MAX_FILE_SIZE =
-    10 * 1024 * 1024;
+    50 * 1024 * 1024;
 
 export const MAX_FOLDER_FILES =
     100;
@@ -54,9 +54,18 @@ export const ticketsState = {
     clientes: [],
     areas: [],
 
+    comentarios: [],
+
+    ticketComentariosActual:
+        null,
+
+    comentarioEditando:
+        null,
+
     modals: {
         agregar: null,
         ver: null,
-        editar: null
+        editar: null,
+        comentarios: null
     }
 };

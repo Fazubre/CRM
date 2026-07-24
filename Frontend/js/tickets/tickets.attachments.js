@@ -16,6 +16,11 @@ export function setupAttachmentExclusivity() {
         "editarArchivoAdjunto",
         "editarCarpetaAdjunta"
     );
+
+    setupAttachmentPair(
+        "comentarioArchivoAdjunto",
+        "comentarioCarpetaAdjunta"
+    );
 }
 
 function setupAttachmentPair(
@@ -76,15 +81,20 @@ export function clearAttachmentInputs(
         carpetaInputId
     ].forEach((id) => {
         const input =
-            document.getElementById(id);
-
-        if (input) {
-            input.value = "";
-
-            input.classList.remove(
-                "is-invalid"
+            document.getElementById(
+                id
             );
+
+        if (!input) {
+            return;
         }
+
+        input.value =
+            "";
+
+        input.classList.remove(
+            "is-invalid"
+        );
     });
 }
 
@@ -111,7 +121,8 @@ export function getTicketAttachment(
         "string"
     ) {
         return {
-            id: "",
+            id:
+                "",
 
             tipoAdjunto:
                 "archivo",
@@ -119,7 +130,8 @@ export function getTicketAttachment(
             nombre:
                 "Archivo adjunto",
 
-            tipo: "",
+            tipo:
+                "",
 
             cantidadArchivos:
                 0,
@@ -202,7 +214,11 @@ export function getAttachmentDescription(
             0;
 
         return cantidad > 0
-            ? `Carpeta de Google Drive · ${cantidad} archivo${cantidad === 1 ? "" : "s"}`
+            ? (
+                `Carpeta de Google Drive · ` +
+                `${cantidad} archivo` +
+                `${cantidad === 1 ? "" : "s"}`
+            )
             : "Carpeta de Google Drive";
     }
 
@@ -417,7 +433,8 @@ export function validateAttachmentSelection(
         archivosCarpeta.length > 0
     ) {
         return {
-            valido: false,
+            valido:
+                false,
 
             mensaje:
                 "Seleccione un archivo individual o una carpeta, no ambos."
@@ -435,8 +452,11 @@ export function validateAttachmentSelection(
         0
     ) {
         return {
-            valido: true,
-            mensaje: ""
+            valido:
+                true,
+
+            mensaje:
+                ""
         };
     }
 
@@ -445,10 +465,14 @@ export function validateAttachmentSelection(
         MAX_FOLDER_FILES
     ) {
         return {
-            valido: false,
+            valido:
+                false,
 
             mensaje:
-                `La carpeta no puede contener más de ${MAX_FOLDER_FILES} archivos.`
+                (
+                    `La carpeta no puede contener más de ` +
+                    `${MAX_FOLDER_FILES} archivos.`
+                )
         };
     }
 
@@ -466,10 +490,14 @@ export function validateAttachmentSelection(
 
         if (!validation.valido) {
             return {
-                valido: false,
+                valido:
+                    false,
 
                 mensaje:
-                    `${folderFile.name}: ${validation.mensaje}`
+                    (
+                        `${folderFile.name}: ` +
+                        `${validation.mensaje}`
+                    )
             };
         }
 
@@ -482,7 +510,8 @@ export function validateAttachmentSelection(
         MAX_FOLDER_TOTAL_SIZE
     ) {
         return {
-            valido: false,
+            valido:
+                false,
 
             mensaje:
                 "La carpeta no puede superar los 100 MB en total."
@@ -490,8 +519,11 @@ export function validateAttachmentSelection(
     }
 
     return {
-        valido: true,
-        mensaje: ""
+        valido:
+            true,
+
+        mensaje:
+            ""
     };
 }
 
@@ -500,8 +532,11 @@ function validateTicketFile(
 ) {
     if (!file) {
         return {
-            valido: true,
-            mensaje: ""
+            valido:
+                true,
+
+            mensaje:
+                ""
         };
     }
 
@@ -509,11 +544,22 @@ function validateTicketFile(
         file.size >
         MAX_FILE_SIZE
     ) {
+        const maxSizeMb =
+            MAX_FILE_SIZE /
+            (
+                1024 *
+                1024
+            );
+
         return {
-            valido: false,
+            valido:
+                false,
 
             mensaje:
-                "Cada archivo no puede superar los 10 MB."
+                (
+                    `Cada archivo no puede superar los ` +
+                    `${maxSizeMb} MB.`
+                )
         };
     }
 
@@ -542,7 +588,8 @@ function validateTicketFile(
         !extensionAllowed
     ) {
         return {
-            valido: false,
+            valido:
+                false,
 
             mensaje:
                 "El formato del archivo seleccionado no está permitido."
@@ -550,8 +597,11 @@ function validateTicketFile(
     }
 
     return {
-        valido: true,
-        mensaje: ""
+        valido:
+            true,
+
+        mensaje:
+            ""
     };
 }
 

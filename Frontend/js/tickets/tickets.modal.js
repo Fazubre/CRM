@@ -12,12 +12,16 @@ import {
 } from "./tickets.attachments.js";
 
 import {
+    loadViewTicketComments,
+    setupViewCommentEvents
+} from "./tickets.comments.view.js";
+
+import {
     ticketsState
 } from "./tickets.state.js";
 
 import {
     capitalizeText,
-    convertirLinksClickeables,
     formatDate,
     formatDateForInput,
     formatDateTime,
@@ -28,6 +32,11 @@ import {
     setTextValue,
     setUsuarioIdActual
 } from "./tickets.utils.js";
+
+const COMPONENTS_BASE_URL =
+    window.CRM_CONFIG
+        ?.COMPONENTS_URL ||
+    "/CRM/components";
 
 const MODAL_CONFIG = [
     {
@@ -48,7 +57,10 @@ const MODAL_CONFIG = [
             "modalVerTicket",
 
         ruta:
-            "./components/Tickets/modal-view-ticket.html"
+            (
+                `${COMPONENTS_BASE_URL}/` +
+                "Tickets/modal-view-ticket.html"
+            )
     },
     {
         contenedorId:
@@ -59,6 +71,19 @@ const MODAL_CONFIG = [
 
         ruta:
             "./components/Tickets/modal-edit-ticket.html"
+    },
+    {
+        contenedorId:
+            "contenedorModalComentariosTicket",
+
+        modalId:
+            "modalComentariosTicket",
+
+        ruta:
+            (
+                `${COMPONENTS_BASE_URL}/` +
+                "Tickets/modal-comments-ticket.html"
+            )
     }
 ];
 
@@ -129,8 +154,8 @@ export async function loadModalsHtml() {
             await fetch(
                 modal.ruta,
                 {
-                    cache:
-                        "no-store"
+                    credentials:
+                        "same-origin"
                 }
             );
 
@@ -170,6 +195,11 @@ export function initializeModals() {
             "modalEditarTicket"
         );
 
+    const commentsModalElement =
+        document.getElementById(
+            "modalComentariosTicket"
+        );
+
     if (addModalElement) {
         ticketsState.modals.agregar =
             new BootstrapModal(
@@ -200,6 +230,15 @@ export function initializeModals() {
             resetEditTicketForm
         );
     }
+
+    if (commentsModalElement) {
+        ticketsState.modals.comentarios =
+            new BootstrapModal(
+                commentsModalElement
+            );
+    }
+
+    setupViewCommentEvents();
 }
 
 export function openTicketModal() {
@@ -215,7 +254,7 @@ export function openTicketModal() {
         ?.show();
 }
 
-export function openViewTicketModal(
+export async function openViewTicketModal(
     ticket
 ) {
     fillViewTicketModal(
@@ -226,6 +265,10 @@ export function openViewTicketModal(
         .modals
         .ver
         ?.show();
+
+    await loadViewTicketComments(
+        ticket
+    );
 }
 
 export function openEditTicketModal(
@@ -273,7 +316,9 @@ function fillViewTicketModal(
 
         ticket.estadoNombre ||
         (
-            isTicketCompleted(ticket)
+            isTicketCompleted(
+                ticket
+            )
                 ? "Completado"
                 : "Abierto"
         )
@@ -301,7 +346,9 @@ function fillViewTicketModal(
 
     setTextValue(
         "verEmpleadoAsignado",
-        getEmployeeName(ticket)
+        getEmployeeName(
+            ticket
+        )
     );
 
     setTextValue(
@@ -350,11 +397,9 @@ function fillViewTicketModal(
         );
 
     if (description) {
-        description.innerHTML =
-            convertirLinksClickeables(
-                ticket.descripcion ||
-                "Sin descripción"
-            );
+        description.value =
+            ticket.descripcion ||
+            "Sin descripción";
     }
 
     fillViewTicketFile(
@@ -380,7 +425,9 @@ function fillEditTicketForm(
     setInputValue(
         "editarEstado",
 
-        isTicketCompleted(ticket)
+        isTicketCompleted(
+            ticket
+        )
             ? "completado"
             : "abierto"
     );

@@ -5,6 +5,14 @@ import {
     TICKETS_URL
 } from "./tickets.state.js";
 
+const COMMENTS_API_BASE_URL =
+    window.CRM_CONFIG
+        ?.API_BASE_URL ||
+    "https://crm-c40k.onrender.com";
+
+const COMMENTS_TICKETS_URL =
+    `${COMMENTS_API_BASE_URL}/tickets`;
+
 export async function readResponseData(
     response
 ) {
@@ -42,7 +50,12 @@ async function request(
     const response =
         await fetch(
             url,
-            options
+            {
+                ...options,
+
+                credentials:
+                    "include"
+            }
         );
 
     const data =
@@ -54,11 +67,20 @@ async function request(
         !response.ok ||
         data.ok === false
     ) {
-        throw new Error(
-            data.mensaje ||
-            defaultErrorMessage ||
-            "No fue posible completar la operación."
-        );
+        const error =
+            new Error(
+                data.mensaje ||
+                defaultErrorMessage ||
+                "No fue posible completar la operación."
+            );
+
+        error.status =
+            response.status;
+
+        error.data =
+            data;
+
+        throw error;
     }
 
     return data;
@@ -143,8 +165,11 @@ export function createTicket(
     return request(
         TICKETS_URL,
         {
-            method: "POST",
-            body: formData
+            method:
+                "POST",
+
+            body:
+                formData
         },
         "No fue posible crear el ticket."
     );
@@ -157,8 +182,11 @@ export function updateTicket(
     return request(
         `${TICKETS_URL}/${encodeURIComponent(ticketId)}`,
         {
-            method: "PUT",
-            body: formData
+            method:
+                "PUT",
+
+            body:
+                formData
         },
         "No fue posible actualizar el ticket."
     );
@@ -199,5 +227,93 @@ export function deleteTicketRequest(
                 })
         },
         "No fue posible eliminar el ticket."
+    );
+}
+
+function getTicketCommentsUrl(
+    ticketId
+) {
+    return (
+        `${COMMENTS_TICKETS_URL}/` +
+        `${encodeURIComponent(ticketId)}/comments`
+    );
+}
+
+export async function getTicketComments(
+    ticketId
+) {
+    const data =
+        await request(
+            getTicketCommentsUrl(
+                ticketId
+            ),
+            {
+                method:
+                    "GET"
+            },
+            "No fue posible obtener los comentarios."
+        );
+
+    return Array.isArray(
+        data.comments
+    )
+        ? data.comments
+        : [];
+}
+
+export function createTicketComment(
+    ticketId,
+    formData
+) {
+    return request(
+        getTicketCommentsUrl(
+            ticketId
+        ),
+        {
+            method:
+                "POST",
+
+            body:
+                formData
+        },
+        "No fue posible guardar el comentario."
+    );
+}
+
+export function updateTicketComment(
+    ticketId,
+    commentId,
+    formData
+) {
+    return request(
+        (
+            `${getTicketCommentsUrl(ticketId)}/` +
+            `${encodeURIComponent(commentId)}`
+        ),
+        {
+            method:
+                "PUT",
+
+            body:
+                formData
+        },
+        "No fue posible actualizar el comentario."
+    );
+}
+
+export function deleteTicketCommentRequest(
+    ticketId,
+    commentId
+) {
+    return request(
+        (
+            `${getTicketCommentsUrl(ticketId)}/` +
+            `${encodeURIComponent(commentId)}`
+        ),
+        {
+            method:
+                "DELETE"
+        },
+        "No fue posible eliminar el comentario."
     );
 }

@@ -778,9 +778,112 @@ async function putTicket(
     }
 }
 
+async function removeTicket(
+    req,
+    res
+) {
+    try {
+        const {
+            id
+        } = req.params;
+
+        /*
+            Obtiene el ticket antes de eliminarlo,
+            porque necesitamos conocer su carpeta
+            de Google Drive.
+        */
+        const currentTicket =
+            await getTicketById(
+                id
+            );
+
+        /*
+            Para tickets antiguos que todavía no
+            tienen la nueva estructura de carpetas,
+            crea o recupera la estructura y mueve
+            el adjunto anterior.
+        */
+        const storageResult =
+            await ensureTicketDriveStorage(
+                currentTicket
+            );
+
+        const ticketWithDrive = {
+            ...currentTicket,
+
+            googleDrive:
+                storageResult
+                    .googleDrive,
+
+            archivoAdjunto:
+                storageResult
+                    .archivoAdjunto
+        };
+
+        /*
+            Elimina la carpeta principal del ticket.
+
+            Al eliminar esa carpeta también se eliminan:
+
+            Adjunto-Ticket
+            Comentarios
+            Carpetas de cada comentario
+            Archivos de los comentarios
+        */
+        await deleteTicketDriveStorage(
+            ticketWithDrive
+        );
+
+        /*
+            El modelo elimina primero la subcolección
+            comments y después elimina el ticket.
+        */
+        const deletedTicket =
+            await deleteTicket(
+                id
+            );
+
+        return res
+            .status(200)
+            .json({
+                ok:
+                    true,
+
+                mensaje:
+                    "Ticket, comentarios y archivos eliminados correctamente.",
+
+                ticket:
+                    deletedTicket
+            });
+    } catch (error) {
+        console.error(
+            "Error eliminando ticket:",
+            error
+        );
+
+        const status =
+            error.message ===
+            "El ticket no existe."
+                ? 404
+                : 500;
+
+        return res
+            .status(status)
+            .json({
+                ok:
+                    false,
+
+                mensaje:
+                    error.message ||
+                    "No fue posible eliminar el ticket."
+            });
+    }
+}
+
 module.exports = {
     postTicket,
     getTickets,
     getTicket,
-    putTicket
+    putTicket,
+    removeTicket
 };

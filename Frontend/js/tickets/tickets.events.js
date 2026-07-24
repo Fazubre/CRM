@@ -7,6 +7,11 @@ import {
 } from "./tickets.catalogs.js";
 
 import {
+    openCommentsModal,
+    setupCommentEvents
+} from "./tickets.comments.js";
+
+import {
     deleteTicket,
     submitEditTicketForm,
     submitTicketForm
@@ -34,6 +39,7 @@ export function setupEvents() {
     setupTableEvents();
     setupFormChangeEvents();
     setupAttachmentExclusivity();
+    setupCommentEvents();
 }
 
 function setupPageEvents() {
@@ -66,7 +72,9 @@ function setupFormEvents() {
         )
         ?.addEventListener(
             "submit",
-            async (event) => {
+            async (
+                event
+            ) => {
                 event.preventDefault();
 
                 await submitTicketForm();
@@ -79,7 +87,9 @@ function setupFormEvents() {
         )
         ?.addEventListener(
             "submit",
-            async (event) => {
+            async (
+                event
+            ) => {
                 event.preventDefault();
 
                 await submitEditTicketForm();
@@ -99,9 +109,12 @@ async function handleTableAction(
 ) {
     const actionButton =
         event.target.closest(
-            ".btn-ver-ticket, " +
-            ".btn-editar-ticket, " +
-            ".btn-eliminar-ticket"
+            (
+                ".btn-ver-ticket, " +
+                ".btn-comentarios-ticket, " +
+                ".btn-editar-ticket, " +
+                ".btn-eliminar-ticket"
+            )
         );
 
     if (!actionButton) {
@@ -115,6 +128,7 @@ async function handleTableAction(
 
     if (!ticket) {
         showTicketNotFound();
+
         return;
     }
 
@@ -124,6 +138,18 @@ async function handleTableAction(
         )
     ) {
         openViewTicketModal(
+            ticket
+        );
+
+        return;
+    }
+
+    if (
+        actionButton.classList.contains(
+            "btn-comentarios-ticket"
+        )
+    ) {
+        await openCommentsModal(
             ticket
         );
 
@@ -169,42 +195,56 @@ export function setupFormChangeEvents() {
         "editarEmpleadoAsignado",
         "editarFechaVencimiento",
         "editarArchivoAdjunto",
-        "editarCarpetaAdjunta"
+        "editarCarpetaAdjunta",
+
+        "textoComentario",
+        "comentarioArchivoAdjunto",
+        "comentarioCarpetaAdjunta"
     ];
 
-    fields.forEach((id) => {
-        const field =
-            document.getElementById(id);
+    fields.forEach(
+        (
+            id
+        ) => {
+            const field =
+                document.getElementById(
+                    id
+                );
 
-        if (!field) {
-            return;
+            if (!field) {
+                return;
+            }
+
+            const clearValidation =
+                () => {
+                    hideAlert(
+                        "alertaFormularioTicket"
+                    );
+
+                    hideAlert(
+                        "alertaFormularioEditarTicket"
+                    );
+
+                    hideAlert(
+                        "alertaComentariosTicket"
+                    );
+
+                    field.classList.remove(
+                        "is-invalid"
+                    );
+                };
+
+            field.addEventListener(
+                "input",
+                clearValidation
+            );
+
+            field.addEventListener(
+                "change",
+                clearValidation
+            );
         }
-
-        const clearValidation =
-            () => {
-                hideAlert(
-                    "alertaFormularioTicket"
-                );
-
-                hideAlert(
-                    "alertaFormularioEditarTicket"
-                );
-
-                field.classList.remove(
-                    "is-invalid"
-                );
-            };
-
-        field.addEventListener(
-            "input",
-            clearValidation
-        );
-
-        field.addEventListener(
-            "change",
-            clearValidation
-        );
-    });
+    );
 }
 
 function showTicketNotFound() {

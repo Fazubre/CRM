@@ -30,13 +30,18 @@ const TABLE_BODY_ID =
 const EXPECTED_COLUMN_COUNT =
     10;
 
-export function findTicketById(id) {
+export function findTicketById(
+    id
+) {
     return (
-        ticketsState.tickets.find(
-            (ticket) =>
-                String(ticket.id) ===
-                String(id)
-        ) ||
+        ticketsState
+            .tickets
+            .find((ticket) => {
+                return (
+                    String(ticket.id) ===
+                    String(id)
+                );
+            }) ||
         null
     );
 }
@@ -58,7 +63,8 @@ export async function loadTickets() {
     try {
         destroyDataTable();
 
-        tbody.innerHTML = "";
+        tbody.innerHTML =
+            "";
 
         ticketsState.tickets =
             await getTickets();
@@ -79,19 +85,23 @@ export async function loadTickets() {
             error
         );
 
-        ticketsState.tickets = [];
+        ticketsState.tickets =
+            [];
 
         ticketsState.mensajeTablaVacia =
             error.message ||
             "No fue posible cargar los tickets.";
 
         renderTableError(
-            ticketsState.mensajeTablaVacia
+            ticketsState
+                .mensajeTablaVacia
         );
     }
 }
 
-export function renderTickets(tickets) {
+export function renderTickets(
+    tickets
+) {
     const tbody =
         document.getElementById(
             TABLE_BODY_ID
@@ -102,35 +112,29 @@ export function renderTickets(tickets) {
     }
 
     if (
-        !Array.isArray(tickets) ||
-        tickets.length === 0
+        !Array.isArray(
+            tickets
+        ) ||
+        tickets.length ===
+        0
     ) {
-        tbody.innerHTML = "";
+        tbody.innerHTML =
+            "";
+
         return;
     }
 
     tbody.innerHTML =
         tickets
-            .map(renderTicketRow)
+            .map(
+                renderTicketRow
+            )
             .join("");
 }
 
-function renderTicketRow(ticket) {
-    /*
-        Orden de las columnas:
-
-        0. Título
-        1. Cliente
-        2. Área
-        3. Empleado
-        4. Estado
-        5. Prioridad
-        6. Vencimiento
-        7. Archivo
-        8. Acciones
-        9. ID
-    */
-
+function renderTicketRow(
+    ticket
+) {
     return `
         <tr>
             <td>
@@ -157,12 +161,16 @@ function renderTicketRow(ticket) {
 
             <td>
                 ${escapeHtml(
-                    getEmployeeName(ticket)
+                    getEmployeeName(
+                        ticket
+                    )
                 )}
             </td>
 
             <td>
-                ${renderEstado(ticket)}
+                ${renderEstado(
+                    ticket
+                )}
             </td>
 
             <td>
@@ -181,11 +189,15 @@ function renderTicketRow(ticket) {
             </td>
 
             <td>
-                ${renderAdjunto(ticket)}
+                ${renderAdjunto(
+                    ticket
+                )}
             </td>
 
             <td>
-                ${renderTicketActions(ticket)}
+                ${renderTicketActions(
+                    ticket
+                )}
             </td>
 
             <td>
@@ -198,15 +210,17 @@ function renderTicketRow(ticket) {
     `;
 }
 
-function renderTicketActions(ticket) {
+function renderTicketActions(
+    ticket
+) {
     return `
         <div
-            class="btn-group btn-group-sm"
+            class="d-flex flex-wrap gap-1"
             role="group"
         >
             <button
                 type="button"
-                class="btn btn-outline-info btn-ver-ticket"
+                class="btn btn-outline-info btn-sm btn-ver-ticket"
                 data-id="${escapeHtml(ticket.id || "")}"
             >
                 Ver
@@ -214,18 +228,31 @@ function renderTicketActions(ticket) {
 
             <button
                 type="button"
-                class="btn btn-outline-warning btn-editar-ticket"
+                class="btn btn-outline-primary btn-sm btn-comentarios-ticket"
+                data-id="${escapeHtml(ticket.id || "")}"
+            >
+                <i class="fa-solid fa-comment-dots me-1"></i>
+                Agregar Comentario
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-outline-warning btn-sm btn-editar-ticket"
                 data-id="${escapeHtml(ticket.id || "")}"
             >
                 Editar
             </button>
 
-            ${renderDeleteTicketButton(ticket)}
+            ${renderDeleteTicketButton(
+                ticket
+            )}
         </div>
     `;
 }
 
-function renderDeleteTicketButton(ticket) {
+function renderDeleteTicketButton(
+    ticket
+) {
     if (!checkUsuarioAdmin()) {
         return "";
     }
@@ -233,7 +260,7 @@ function renderDeleteTicketButton(ticket) {
     return `
         <button
             type="button"
-            class="btn btn-outline-danger btn-eliminar-ticket"
+            class="btn btn-outline-danger btn-sm btn-eliminar-ticket"
             data-id="${escapeHtml(ticket.id || "")}"
         >
             Borrar
@@ -241,9 +268,13 @@ function renderDeleteTicketButton(ticket) {
     `;
 }
 
-function renderAdjunto(ticket) {
+function renderAdjunto(
+    ticket
+) {
     const attachment =
-        getTicketAttachment(ticket);
+        getTicketAttachment(
+            ticket
+        );
 
     if (!attachment?.enlace) {
         return `
@@ -280,9 +311,13 @@ function renderAdjunto(ticket) {
     `;
 }
 
-function renderEstado(ticket) {
+function renderEstado(
+    ticket
+) {
     const completed =
-        isTicketCompleted(ticket);
+        isTicketCompleted(
+            ticket
+        );
 
     const text =
         ticket.estadoNombre ||
@@ -304,7 +339,9 @@ function renderEstado(ticket) {
     `;
 }
 
-function renderPrioridad(prioridad) {
+function renderPrioridad(
+    prioridad
+) {
     const value =
         String(
             prioridad ||
@@ -319,10 +356,14 @@ function renderPrioridad(prioridad) {
     if (value === "baja") {
         cssClass =
             "bg-info text-dark";
-    } else if (value === "media") {
+    } else if (
+        value === "media"
+    ) {
         cssClass =
             "bg-primary";
-    } else if (value === "alta") {
+    } else if (
+        value === "alta"
+    ) {
         cssClass =
             "bg-warning text-dark";
     } else if (
@@ -364,7 +405,10 @@ function validateTableStructure() {
         EXPECTED_COLUMN_COUNT
     ) {
         throw new Error(
-            `La tabla tiene ${headerColumns.length} encabezados y debería tener ${EXPECTED_COLUMN_COUNT}.`
+            (
+                `La tabla tiene ${headerColumns.length} encabezados ` +
+                `y debería tener ${EXPECTED_COLUMN_COUNT}.`
+            )
         );
     }
 
@@ -374,7 +418,10 @@ function validateTableStructure() {
         );
 
     rows.forEach(
-        (row, index) => {
+        (
+            row,
+            index
+        ) => {
             const bodyColumns =
                 row.querySelectorAll(
                     ":scope > td"
@@ -385,7 +432,11 @@ function validateTableStructure() {
                 EXPECTED_COLUMN_COUNT
             ) {
                 throw new Error(
-                    `La fila ${index + 1} tiene ${bodyColumns.length} columnas y debería tener ${EXPECTED_COLUMN_COUNT}.`
+                    (
+                        `La fila ${index + 1} tiene ` +
+                        `${bodyColumns.length} columnas y debería tener ` +
+                        `${EXPECTED_COLUMN_COUNT}.`
+                    )
                 );
             }
         }
@@ -422,11 +473,16 @@ export function destroyDataTable() {
 
     try {
         if (
-            jquery.fn.DataTable.isDataTable(
+            jquery
+                .fn
+                .DataTable
+                .isDataTable(
+                    table
+                )
+        ) {
+            jquery(
                 table
             )
-        ) {
-            jquery(table)
                 .DataTable()
                 .clear()
                 .destroy();
@@ -468,22 +524,28 @@ export function initDataTable() {
     validateTableStructure();
 
     if (
-        jquery.fn.DataTable.isDataTable(
-            table
-        )
+        jquery
+            .fn
+            .DataTable
+            .isDataTable(
+                table
+            )
     ) {
         return;
     }
 
-    jquery(table).DataTable({
-        responsive: true,
-        autoWidth: false,
-        pageLength: 10,
+    jquery(
+        table
+    ).DataTable({
+        responsive:
+            true,
 
-        /*
-            Se ordena por título porque ya no existe
-            la columna de número de ticket.
-        */
+        autoWidth:
+            false,
+
+        pageLength:
+            10,
+
         order: [
             [
                 0,
@@ -493,20 +555,24 @@ export function initDataTable() {
 
         columnDefs: [
             {
-                /*
-                    Columna Acciones
-                */
-                targets: 8,
-                orderable: false,
-                searchable: false
+                targets:
+                    8,
+
+                orderable:
+                    false,
+
+                searchable:
+                    false
             },
             {
-                /*
-                    Columna ID
-                */
-                targets: 9,
-                visible: false,
-                searchable: true
+                targets:
+                    9,
+
+                visible:
+                    false,
+
+                searchable:
+                    true
             }
         ],
 
@@ -544,7 +610,9 @@ export function initDataTable() {
     });
 }
 
-function renderTableError(message) {
+function renderTableError(
+    message
+) {
     const tbody =
         document.getElementById(
             TABLE_BODY_ID

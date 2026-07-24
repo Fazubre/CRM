@@ -6,11 +6,13 @@ const ticketCommentRoutes =
     require(
         "./TicketComment.route"
     );
+
 const {
     postTicket,
     getTickets,
     getTicket,
-    putTicket
+    putTicket,
+    removeTicket
 } = require(
     "../controllers/Ticket.controller"
 );
@@ -46,16 +48,38 @@ const processTicketAttachments =
         }
     ]);
 
+/*
+    GET /tickets
+*/
 router.get(
     "/",
     getTickets
 );
 
+/*
+    Rutas de comentarios:
+
+    GET    /tickets/:ticketId/comments
+    POST   /tickets/:ticketId/comments
+    PUT    /tickets/:ticketId/comments/:commentId
+    DELETE /tickets/:ticketId/comments/:commentId
+*/
+router.use(
+    "/:ticketId/comments",
+    ticketCommentRoutes
+);
+
+/*
+    GET /tickets/:id
+*/
 router.get(
     "/:id",
     getTicket
 );
 
+/*
+    POST /tickets
+*/
 router.post(
     "/",
     processTicketAttachments,
@@ -63,11 +87,22 @@ router.post(
     postTicket
 );
 
+/*
+    PUT /tickets/:id
+*/
 router.put(
     "/:id",
     processTicketAttachments,
     handleUploadError,
     putTicket
+);
+
+/*
+    DELETE /tickets/:id
+*/
+router.delete(
+    "/:id",
+    removeTicket
 );
 
 module.exports =
