@@ -109,12 +109,10 @@ async function handleTableAction(
 ) {
     const actionButton =
         event.target.closest(
-            (
-                ".btn-ver-ticket, " +
-                ".btn-comentarios-ticket, " +
-                ".btn-editar-ticket, " +
-                ".btn-eliminar-ticket"
-            )
+            ".btn-ver-ticket, " +
+            ".btn-comentarios-ticket, " +
+            ".btn-editar-ticket, " +
+            ".btn-eliminar-ticket"
         );
 
     if (!actionButton) {
@@ -128,16 +126,17 @@ async function handleTableAction(
 
     if (!ticket) {
         showTicketNotFound();
-
         return;
     }
 
     if (
-        actionButton.classList.contains(
-            "btn-ver-ticket"
-        )
+        actionButton
+            .classList
+            .contains(
+                "btn-ver-ticket"
+            )
     ) {
-        openViewTicketModal(
+        await openViewTicketModal(
             ticket
         );
 
@@ -145,9 +144,11 @@ async function handleTableAction(
     }
 
     if (
-        actionButton.classList.contains(
-            "btn-comentarios-ticket"
-        )
+        actionButton
+            .classList
+            .contains(
+                "btn-comentarios-ticket"
+            )
     ) {
         await openCommentsModal(
             ticket
@@ -157,9 +158,11 @@ async function handleTableAction(
     }
 
     if (
-        actionButton.classList.contains(
-            "btn-editar-ticket"
-        )
+        actionButton
+            .classList
+            .contains(
+                "btn-editar-ticket"
+            )
     ) {
         openEditTicketModal(
             ticket
@@ -169,9 +172,11 @@ async function handleTableAction(
     }
 
     if (
-        actionButton.classList.contains(
-            "btn-eliminar-ticket"
-        )
+        actionButton
+            .classList
+            .contains(
+                "btn-eliminar-ticket"
+            )
     ) {
         await deleteTicket(
             ticket

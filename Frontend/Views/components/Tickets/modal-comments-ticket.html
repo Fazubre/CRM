@@ -1,8 +1,8 @@
 <div
     class="modal fade"
-    id="modalVerTicket"
+    id="modalComentariosTicket"
     tabindex="-1"
-    aria-labelledby="modalVerTicketLabel"
+    aria-labelledby="modalComentariosTicketLabel"
     aria-hidden="true"
 >
     <div
@@ -13,13 +13,16 @@
                 <div>
                     <h5
                         class="modal-title"
-                        id="modalVerTicketLabel"
+                        id="modalComentariosTicketLabel"
                     >
-                        Detalles del ticket
+                        Comentarios del ticket
                     </h5>
 
-                    <p class="text-muted small mb-0">
-                        Información completa del ticket seleccionado
+                    <p
+                        class="mb-0 text-muted small"
+                        id="comentariosTicketReferencia"
+                    >
+                        Ticket seleccionado
                     </p>
                 </div>
 
@@ -32,329 +35,203 @@
             </div>
 
             <div class="modal-body">
-                <section class="mb-4">
-                    <div class="row g-3">
-                        <div class="col-md-3">
+                <div
+                    id="alertaComentariosTicket"
+                    class="alert alert-danger d-none"
+                    role="alert"
+                ></div>
+
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <section>
                             <div
-                                class="border rounded p-3 h-100"
+                                class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3"
+                            >
+                                <h6 class="mb-0">
+                                    <i
+                                        class="fa-solid fa-comments me-2"
+                                    ></i>
+
+                                    Historial de comentarios
+                                </h6>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    id="btnRecargarComentarios"
+                                >
+                                    <i
+                                        class="fa-solid fa-rotate me-1"
+                                    ></i>
+
+                                    Recargar
+                                </button>
+                            </div>
+
+                            <div
+                                id="listaComentariosTicket"
+                                class="pe-lg-2"
                             >
                                 <div
-                                    class="small text-muted mb-1"
+                                    class="text-center text-muted border rounded py-5"
                                 >
-                                    Número
+                                    Seleccione un ticket para cargar sus comentarios.
                                 </div>
-
-                                <strong
-                                    id="verNumeroTicket"
-                                >
-                                    -
-                                </strong>
                             </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div
-                                class="border rounded p-3 h-100"
-                            >
-                                <div
-                                    class="small text-muted mb-1"
-                                >
-                                    Estado
-                                </div>
-
-                                <strong
-                                    id="verEstado"
-                                >
-                                    -
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div
-                                class="border rounded p-3 h-100"
-                            >
-                                <div
-                                    class="small text-muted mb-1"
-                                >
-                                    Prioridad
-                                </div>
-
-                                <strong
-                                    id="verPrioridad"
-                                >
-                                    -
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div
-                                class="border rounded p-3 h-100"
-                            >
-                                <div
-                                    class="small text-muted mb-1"
-                                >
-                                    Fecha de vencimiento
-                                </div>
-
-                                <strong
-                                    id="verVencimiento"
-                                >
-                                    -
-                                </strong>
-                            </div>
-                        </div>
+                        </section>
                     </div>
-                </section>
 
-                <section class="mb-4">
-                    <h6 class="mb-3">
-                        <i
-                            class="fa-solid fa-ticket me-2"
-                        ></i>
-
-                        Información principal
-                    </h6>
-
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label
-                                class="form-label text-muted small"
-                            >
-                                Título
-                            </label>
-
-                            <div
-                                id="verTitulo"
-                                class="form-control bg-light"
-                            >
-                                -
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label
-                                class="form-label text-muted small"
-                            >
-                                Cliente
-                            </label>
-
-                            <div
-                                id="verCliente"
-                                class="form-control bg-light"
-                            >
-                                -
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label
-                                class="form-label text-muted small"
-                            >
-                                Área
-                            </label>
-
-                            <div
-                                id="verArea"
-                                class="form-control bg-light"
-                            >
-                                -
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label
-                                class="form-label text-muted small"
-                            >
-                                Empleado asignado
-                            </label>
-
-                            <div
-                                id="verEmpleadoAsignado"
-                                class="form-control bg-light"
-                            >
-                                -
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <label
-                                for="verDescripcion"
-                                class="form-label text-muted small"
-                            >
-                                Descripción
-                            </label>
-
-                            <textarea
-                                id="verDescripcion"
-                                class="form-control bg-light"
-                                rows="5"
-                                readonly
-                            ></textarea>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="mb-4">
-                    <h6 class="mb-3">
-                        <i
-                            class="fa-solid fa-paperclip me-2"
-                        ></i>
-
-                        Adjunto principal
-                    </h6>
-
-                    <div
-                        id="verArchivoDisponible"
-                        class="border rounded p-3 d-none"
-                    >
-                        <div
-                            class="d-flex flex-wrap align-items-center justify-content-between gap-3"
+                    <div class="col-lg-5">
+                        <section
+                            class="border rounded p-3 bg-light"
                         >
-                            <div>
-                                <strong
-                                    id="verArchivoNombre"
-                                ></strong>
-
-                                <div
-                                    id="verArchivoTipo"
-                                    class="small text-muted mt-1"
-                                ></div>
-                            </div>
-
-                            <a
-                                id="verArchivoEnlace"
-                                class="btn btn-outline-secondary btn-sm"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <h6
+                                class="mb-3"
+                                id="tituloFormularioComentario"
                             >
-                                Ver adjunto
-                            </a>
-                        </div>
-                    </div>
-
-                    <div
-                        id="verArchivoSinAdjunto"
-                        class="text-muted border rounded p-3"
-                    >
-                        Este ticket no tiene un adjunto principal.
-                    </div>
-                </section>
-
-                <section class="mb-4">
-                    <div
-                        class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"
-                    >
-                        <h6 class="mb-0">
-                            <i
-                                class="fa-solid fa-comments me-2"
-                            ></i>
-
-                            Comentarios
-
-                            <span
-                                id="verCantidadComentarios"
-                                class="badge bg-secondary ms-1"
-                            >
-                                0
-                            </span>
-                        </h6>
-
-                        <div class="d-flex gap-2">
-                            <button
-                                type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                id="btnRecargarComentariosVer"
-                            >
-                                <i
-                                    class="fa-solid fa-rotate me-1"
-                                ></i>
-
-                                Recargar
-                            </button>
-
-                            <button
-                                type="button"
-                                class="btn btn-primary btn-sm"
-                                id="btnGestionarComentariosDesdeVer"
-                            >
-                                <i
-                                    class="fa-solid fa-comment-dots me-1"
-                                ></i>
-
                                 Agregar comentario
-                            </button>
-                        </div>
+                            </h6>
+
+                            <form
+                                id="formComentarioTicket"
+                                enctype="multipart/form-data"
+                                novalidate
+                            >
+                                <input
+                                    type="hidden"
+                                    id="comentarioTicketId"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    id="comentarioId"
+                                >
+
+                                <div class="mb-3">
+                                    <label
+                                        for="textoComentario"
+                                        class="form-label"
+                                    >
+                                        Comentario
+
+                                        <span class="text-danger">
+                                            *
+                                        </span>
+                                    </label>
+
+                                    <textarea
+                                        class="form-control"
+                                        id="textoComentario"
+                                        rows="6"
+                                        required
+                                        placeholder="Escriba el comentario..."
+                                    ></textarea>
+
+                                    <div class="invalid-feedback">
+                                        Debe ingresar el comentario.
+                                    </div>
+                                </div>
+
+                                <div
+                                    id="comentarioAdjuntoActual"
+                                    class="alert alert-light border d-none"
+                                >
+                                    <div>
+                                        <strong>
+                                            Adjunto actual
+                                        </strong>
+
+                                        <div
+                                            class="small text-muted mt-1"
+                                            id="comentarioAdjuntoActualNombre"
+                                        ></div>
+                                    </div>
+
+                                    <a
+                                        id="comentarioAdjuntoActualEnlace"
+                                        class="btn btn-outline-secondary btn-sm mt-2"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Abrir adjunto
+                                    </a>
+
+                                    <p
+                                        class="small text-muted mb-0 mt-2"
+                                    >
+                                        Al seleccionar otro adjunto, el actual será reemplazado.
+                                    </p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label
+                                        for="comentarioArchivoAdjunto"
+                                        class="form-label"
+                                    >
+                                        Adjuntar archivo
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        class="form-control"
+                                        id="comentarioArchivoAdjunto"
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt"
+                                    >
+
+                                    <div class="form-text">
+                                        Máximo 50 MB.
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label
+                                        for="comentarioCarpetaAdjunta"
+                                        class="form-label"
+                                    >
+                                        Adjuntar carpeta
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        class="form-control"
+                                        id="comentarioCarpetaAdjunta"
+                                        webkitdirectory
+                                        directory
+                                        multiple
+                                    >
+
+                                    <div class="form-text">
+                                        Máximo 100 archivos y 100 MB en total.
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="d-flex flex-wrap justify-content-end gap-2"
+                                >
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary d-none"
+                                        id="btnCancelarEdicionComentario"
+                                    >
+                                        Cancelar edición
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                        id="btnGuardarComentario"
+                                    >
+                                        <i
+                                            class="fa-solid fa-comment-dots me-2"
+                                        ></i>
+
+                                        Guardar comentario
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
                     </div>
-
-                    <div
-                        id="verListaComentarios"
-                    >
-                        <div
-                            class="text-center text-muted py-4"
-                        >
-                            Cargando comentarios...
-                        </div>
-                    </div>
-                </section>
-
-                <section>
-                    <h6 class="mb-3">
-                        <i
-                            class="fa-solid fa-clock-rotate-left me-2"
-                        ></i>
-
-                        Auditoría
-                    </h6>
-
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label
-                                class="form-label text-muted small"
-                            >
-                                Creado por
-                            </label>
-
-                            <div
-                                id="verCreadoPor"
-                                class="form-control bg-light"
-                            >
-                                -
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label
-                                class="form-label text-muted small"
-                            >
-                                Fecha de creación
-                            </label>
-
-                            <div
-                                id="verFechaCreacion"
-                                class="form-control bg-light"
-                            >
-                                -
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label
-                                class="form-label text-muted small"
-                            >
-                                Última actualización
-                            </label>
-
-                            <div
-                                id="verFechaActualizacion"
-                                class="form-control bg-light"
-                            >
-                                -
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                </div>
             </div>
 
             <div class="modal-footer">
