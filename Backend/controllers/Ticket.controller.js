@@ -26,18 +26,22 @@ const {
     deleteTicketDriveStorage
 } = require("../services/GoogleDrive/TicketDrive");
 
+const DASHBOARD_DAYS_AHEAD = 7;
+
 function getUploadedFiles(req) {
     if (!req.files || typeof req.files !== "object") {
         return [];
     }
 
-    const individualFiles = Array.isArray(req.files.archivo)
-        ? req.files.archivo
-        : [];
+    const individualFiles =
+        Array.isArray(req.files.archivo)
+            ? req.files.archivo
+            : [];
 
-    const folderFiles = Array.isArray(req.files.carpetaArchivos)
-        ? req.files.carpetaArchivos
-        : [];
+    const folderFiles =
+        Array.isArray(req.files.carpetaArchivos)
+            ? req.files.carpetaArchivos
+            : [];
 
     return [
         ...individualFiles,
@@ -46,33 +50,41 @@ function getUploadedFiles(req) {
 }
 
 async function deleteTemporaryFiles(req) {
-    const files = getUploadedFiles(req);
+    const files =
+        getUploadedFiles(req);
 
     await Promise.all(
-        files.map(async (file) => {
-            if (!file?.path) {
-                return;
-            }
+        files.map(
+            async (file) => {
+                if (!file?.path) {
+                    return;
+                }
 
-            try {
-                await fs.unlink(file.path);
+                try {
+                    await fs.unlink(
+                        file.path
+                    );
 
-                console.log(
-                    "Archivo temporal eliminado:",
-                    file.path
-                );
-            } catch (error) {
-                console.warn(
-                    "No fue posible eliminar el archivo temporal:",
-                    file.path,
-                    error.message
-                );
+                    console.log(
+                        "Archivo temporal eliminado:",
+                        file.path
+                    );
+                } catch (error) {
+                    console.warn(
+                        "No fue posible eliminar el archivo temporal:",
+                        file.path,
+                        error.message
+                    );
+                }
             }
-        })
+        )
     );
 }
 
-function parseFolderPaths(req, folderFiles) {
+function parseFolderPaths(
+    req,
+    folderFiles
+) {
     if (
         !Array.isArray(folderFiles) ||
         folderFiles.length === 0
@@ -150,10 +162,13 @@ function buildCreateTicketData(req) {
     return {
         usuarioId:
             req.body?.usuarioId ||
+            req.user?.id ||
             "",
 
         usuarioNombre:
             req.body?.usuarioNombre ||
+            req.user?.nombre ||
+            req.user?.correo ||
             "Usuario",
 
         titulo:
@@ -279,7 +294,9 @@ function getAttachmentMessage(
         : "Ticket creado correctamente.";
 }
 
-async function trySendAssignmentEmail(ticket) {
+async function trySendAssignmentEmail(
+    ticket
+) {
     if (!ticket?.empleadoId) {
         return {
             enviado:
@@ -374,6 +391,556 @@ async function trySendAssignmentEmail(ticket) {
     }
 }
 
+function normalizeValue(value) {
+    return String(
+        value ??
+        ""
+    )
+        .trim()
+        .toLowerCase();
+}
+
+function getEmployeeRole(employee) {
+    if (!employee) {
+        return "";
+    }
+
+    if (
+        Array.isArray(
+            employee.roles
+        )
+    ) {
+        const roles =
+            employee.roles
+                .map(
+                    normalizeValue
+                )
+                .filter(
+                    Boolean
+                );
+
+        if (
+            roles.includes(
+                "admin"
+            )
+        ) {
+            return "admin";
+        }
+
+        return (
+            roles[0] ||
+            ""
+        );
+    }
+
+    return normalizeValue(
+        employee.rol ||
+        employee.role ||
+        employee.tipoRol ||
+        employee.tipo_usuario
+    );
+}
+
+function getPublicEmployee(employee) {
+    return {
+        id:
+            employee?.id ||
+            "",
+
+        google_id:
+            employee?.google_id ||
+            "",
+
+        nombre:
+            employee?.nombre ||
+            employee?.name ||
+            "",
+
+        correo:
+            employee?.correo ||
+            employee?.email ||
+            "",
+
+        foto_url:
+            employee?.foto_url ||
+            employee?.picture ||
+            "",
+
+        rol:
+            getEmployeeRole(
+                employee
+            )
+    };
+}
+
+function parseDateValue(value) {
+    if (!value) {
+        return null;
+    }
+
+    let date;
+
+    if (
+        typeof value === "object" &&
+        typeof value.toDate === "function"
+    ) {
+        date =
+            value.toDate();
+    } else if (
+        typeof value === "object" &&
+        typeof value.seconds === "number"
+    ) {
+        date =
+            new Date(
+                value.seconds *
+                1000
+            );
+    } else if (
+        typeof value === "object" &&
+        typeof value._seconds === "number"
+    ) {
+        date =
+            new Date(
+                value._seconds *
+                1000
+            );
+    } else if (
+        value instanceof Date
+    ) {
+        date =
+            value;
+    } else {
+        date =
+            new Date(value);
+    }
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return null;
+    }
+
+    return date;
+}
+
+function getStartOfToday() {
+    const today =
+        new Date();
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    return today;
+}
+
+function getTicketDueDate(ticket) {
+    return parseDateValue(
+        ticket?.expirationDate ||
+        ticket?.fechaVencimiento ||
+        ticket?.dueDate
+    );
+}
+
+function isTicketCompleted(ticket) {
+    if (
+        ticket?.isCompleted ===
+        true
+    ) {
+        return true;
+    }
+
+    const status =
+        normalizeValue(
+            ticket?.estadoNombre ||
+            ticket?.estado
+        );
+
+    return [
+        "completado",
+        "completa",
+        "cerrado",
+        "cerrada"
+    ].includes(status);
+}
+
+function isTicketOverdue(ticket) {
+    if (
+        isTicketCompleted(
+            ticket
+        )
+    ) {
+        return false;
+    }
+
+    const dueDate =
+        getTicketDueDate(
+            ticket
+        );
+
+    return Boolean(
+        dueDate &&
+        dueDate <
+        getStartOfToday()
+    );
+}
+
+function isTicketDueSoon(ticket) {
+    if (
+        isTicketCompleted(
+            ticket
+        ) ||
+        isTicketOverdue(
+            ticket
+        )
+    ) {
+        return false;
+    }
+
+    const dueDate =
+        getTicketDueDate(
+            ticket
+        );
+
+    if (!dueDate) {
+        return false;
+    }
+
+    const today =
+        getStartOfToday();
+
+    const limit =
+        new Date(today);
+
+    limit.setDate(
+        limit.getDate() +
+        DASHBOARD_DAYS_AHEAD
+    );
+
+    return (
+        dueDate >= today &&
+        dueDate <= limit
+    );
+}
+
+function getPriorityWeight(priority) {
+    const value =
+        normalizeValue(
+            priority
+        );
+
+    if (
+        value === "critica" ||
+        value === "crítica"
+    ) {
+        return 4;
+    }
+
+    if (
+        value === "alta"
+    ) {
+        return 3;
+    }
+
+    if (
+        value === "media"
+    ) {
+        return 2;
+    }
+
+    if (
+        value === "baja"
+    ) {
+        return 1;
+    }
+
+    return 0;
+}
+
+function sortDashboardTickets(
+    ticketA,
+    ticketB
+) {
+    const completedA =
+        isTicketCompleted(
+            ticketA
+        );
+
+    const completedB =
+        isTicketCompleted(
+            ticketB
+        );
+
+    if (
+        completedA !==
+        completedB
+    ) {
+        return completedA
+            ? 1
+            : -1;
+    }
+
+    const overdueA =
+        isTicketOverdue(
+            ticketA
+        );
+
+    const overdueB =
+        isTicketOverdue(
+            ticketB
+        );
+
+    if (
+        overdueA !==
+        overdueB
+    ) {
+        return overdueA
+            ? -1
+            : 1;
+    }
+
+    const priorityDifference =
+        getPriorityWeight(
+            ticketB?.prioridad
+        ) -
+        getPriorityWeight(
+            ticketA?.prioridad
+        );
+
+    if (
+        priorityDifference !==
+        0
+    ) {
+        return priorityDifference;
+    }
+
+    const dueDateA =
+        getTicketDueDate(
+            ticketA
+        );
+
+    const dueDateB =
+        getTicketDueDate(
+            ticketB
+        );
+
+    if (
+        dueDateA &&
+        dueDateB
+    ) {
+        return (
+            dueDateA.getTime() -
+            dueDateB.getTime()
+        );
+    }
+
+    if (dueDateA) {
+        return -1;
+    }
+
+    if (dueDateB) {
+        return 1;
+    }
+
+    return (
+        Number(
+            ticketB?.numeroTicket ||
+            0
+        ) -
+        Number(
+            ticketA?.numeroTicket ||
+            0
+        )
+    );
+}
+
+function buildDashboardSummary(tickets) {
+    const summary = {
+        total:
+            tickets.length,
+
+        abiertos:
+            0,
+
+        completados:
+            0,
+
+        altaPrioridad:
+            0,
+
+        vencidos:
+            0,
+
+        proximos:
+            0,
+
+        sinFecha:
+            0
+    };
+
+    tickets.forEach(
+        (ticket) => {
+            if (
+                isTicketCompleted(
+                    ticket
+                )
+            ) {
+                summary.completados +=
+                    1;
+            } else {
+                summary.abiertos +=
+                    1;
+            }
+
+            const priority =
+                normalizeValue(
+                    ticket?.prioridad
+                );
+
+            if (
+                priority === "alta" ||
+                priority === "critica" ||
+                priority === "crítica"
+            ) {
+                summary.altaPrioridad +=
+                    1;
+            }
+
+            if (
+                isTicketOverdue(
+                    ticket
+                )
+            ) {
+                summary.vencidos +=
+                    1;
+            }
+
+            if (
+                isTicketDueSoon(
+                    ticket
+                )
+            ) {
+                summary.proximos +=
+                    1;
+            }
+
+            if (
+                !getTicketDueDate(
+                    ticket
+                )
+            ) {
+                summary.sinFecha +=
+                    1;
+            }
+        }
+    );
+
+    return summary;
+}
+
+async function getDashboardTickets(
+    req,
+    res
+) {
+    try {
+        const employee =
+            req.user;
+
+        if (!employee?.id) {
+            return res
+                .status(401)
+                .json({
+                    ok:
+                        false,
+
+                    mensaje:
+                        "No fue posible identificar al usuario autenticado."
+                });
+        }
+
+        const role =
+            getEmployeeRole(
+                employee
+            );
+
+        const allTickets =
+            await getAllTickets();
+
+        const visibleTickets =
+            role === "admin"
+                ? allTickets
+                : allTickets.filter(
+                    (ticket) => {
+                        return (
+                            String(
+                                ticket?.empleadoId ||
+                                ""
+                            ) ===
+                            String(
+                                employee.id
+                            )
+                        );
+                    }
+                );
+
+        const orderedTickets =
+            [
+                ...visibleTickets
+            ].sort(
+                sortDashboardTickets
+            );
+
+        return res
+            .status(200)
+            .json({
+                ok:
+                    true,
+
+                alcance:
+                    role === "admin"
+                        ? "general"
+                        : "personal",
+
+                diasProximos:
+                    DASHBOARD_DAYS_AHEAD,
+
+                usuario:
+                    getPublicEmployee(
+                        employee
+                    ),
+
+                resumen:
+                    buildDashboardSummary(
+                        visibleTickets
+                    ),
+
+                tickets:
+                    orderedTickets
+            });
+    } catch (error) {
+        console.error(
+            "Error obteniendo dashboard de tickets:",
+            error
+        );
+
+        return res
+            .status(500)
+            .json({
+                ok:
+                    false,
+
+                mensaje:
+                    error.message ||
+                    "No fue posible cargar el dashboard."
+            });
+    }
+}
+
 async function postTicket(req, res) {
     let ticketCreated =
         null;
@@ -383,10 +950,14 @@ async function postTicket(req, res) {
 
     try {
         const attachmentSelection =
-            getAttachmentSelection(req);
+            getAttachmentSelection(
+                req
+            );
 
         const ticketData =
-            buildCreateTicketData(req);
+            buildCreateTicketData(
+                req
+            );
 
         ticketCreated =
             await createTicket(
@@ -430,13 +1001,6 @@ async function postTicket(req, res) {
                 }
             );
 
-        /*
-         * El correo se intenta enviar cuando el
-         * ticket y su estructura de Drive ya fueron
-         * creados correctamente.
-         *
-         * Si Gmail falla, el ticket no se elimina.
-         */
         const emailResult =
             await trySendAssignmentEmail(
                 finalTicket
@@ -508,7 +1072,9 @@ async function postTicket(req, res) {
                     "No fue posible crear el ticket."
             });
     } finally {
-        await deleteTemporaryFiles(req);
+        await deleteTemporaryFiles(
+            req
+        );
     }
 }
 
@@ -561,7 +1127,9 @@ async function getTicket(req, res) {
         let finalTicket =
             ticket;
 
-        if (storageResult.created) {
+        if (
+            storageResult.created
+        ) {
             finalTicket =
                 await updateTicketDriveData(
                     id,
@@ -621,17 +1189,23 @@ async function putTicket(req, res) {
         } = req.params;
 
         const attachmentSelection =
-            getAttachmentSelection(req);
+            getAttachmentSelection(
+                req
+            );
 
         const currentTicket =
-            await getTicketById(id);
+            await getTicketById(
+                id
+            );
 
         const storageResult =
             await ensureTicketDriveStorage(
                 currentTicket
             );
 
-        if (storageResult.created) {
+        if (
+            storageResult.created
+        ) {
             await updateTicketDriveData(
                 id,
                 {
@@ -677,7 +1251,9 @@ async function putTicket(req, res) {
             });
 
         const ticketData = {
-            ...buildUpdateTicketData(req),
+            ...buildUpdateTicketData(
+                req
+            ),
 
             archivoAdjunto:
                 replacementResult
@@ -775,18 +1351,38 @@ async function putTicket(req, res) {
                     "No fue posible actualizar el ticket."
             });
     } finally {
-        await deleteTemporaryFiles(req);
+        await deleteTemporaryFiles(
+            req
+        );
     }
 }
 
 async function removeTicket(req, res) {
     try {
+        if (
+            getEmployeeRole(
+                req.user
+            ) !== "admin"
+        ) {
+            return res
+                .status(403)
+                .json({
+                    ok:
+                        false,
+
+                    mensaje:
+                        "Solo los empleados con rol admin pueden borrar tickets."
+                });
+        }
+
         const {
             id
         } = req.params;
 
         const currentTicket =
-            await getTicketById(id);
+            await getTicketById(
+                id
+            );
 
         const storageResult =
             await ensureTicketDriveStorage(
@@ -810,7 +1406,9 @@ async function removeTicket(req, res) {
         );
 
         const deletedTicket =
-            await deleteTicket(id);
+            await deleteTicket(
+                id
+            );
 
         return res
             .status(200)
@@ -852,6 +1450,7 @@ async function removeTicket(req, res) {
 module.exports = {
     postTicket,
     getTickets,
+    getDashboardTickets,
     getTicket,
     putTicket,
     removeTicket

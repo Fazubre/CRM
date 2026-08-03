@@ -10,6 +10,7 @@ const ticketCommentRoutes =
 const {
     postTicket,
     getTickets,
+    getDashboardTickets,
     getTicket,
     putTicket,
     removeTicket
@@ -54,6 +55,18 @@ const processTicketAttachments =
 router.get(
     "/",
     getTickets
+);
+
+/*
+    GET /tickets/dashboard
+
+    Esta ruta debe estar antes de /:id.
+    De lo contrario, Express interpretaría
+    "dashboard" como el ID de un ticket.
+*/
+router.get(
+    "/dashboard",
+    getDashboardTickets
 );
 
 /*
