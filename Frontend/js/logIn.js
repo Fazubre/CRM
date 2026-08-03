@@ -1,11 +1,35 @@
+const config =
+    window.CRM_CONFIG;
+
+if (
+    !config ||
+    !config.API_BASE_URL ||
+    !config.DASHBOARD_URL
+) {
+    throw new Error(
+        "CRM_CONFIG no está disponible. Debes cargar config.js antes de logIn.js."
+    );
+}
+
 const BACKEND_URL =
-    window.location.origin;
+    String(
+        config.API_BASE_URL
+    ).replace(
+        /\/$/,
+        ""
+    );
+
+const DASHBOARD_URL =
+    config.DASHBOARD_URL;
 
 const GOOGLE_CLIENT_ID =
     "578696786769-0sduvu0sni3fpjd258kg8grlm4ss2do8.apps.googleusercontent.com";
 
-let usuarioActual = null;
-let googleInicializado = false;
+let usuarioActual =
+    null;
+
+let googleInicializado =
+    false;
 
 window.addEventListener(
     "load",
@@ -20,7 +44,7 @@ async function initPage() {
 
     if (sessionExists) {
         window.location.replace(
-            "/Views/dashboard.html"
+            DASHBOARD_URL
         );
 
         return;
@@ -35,7 +59,8 @@ async function checkExistingSession() {
             await fetch(
                 `${BACKEND_URL}/auth/session`,
                 {
-                    method: "GET",
+                    method:
+                        "GET",
 
                     credentials:
                         "include",
@@ -57,13 +82,18 @@ async function checkExistingSession() {
         const contentType =
             response.headers.get(
                 "content-type"
-            ) || "";
+            ) ||
+            "";
 
         if (
             !contentType.includes(
                 "application/json"
             )
         ) {
+            console.error(
+                "La ruta /auth/session no devolvió JSON."
+            );
+
             return false;
         }
 
@@ -180,11 +210,15 @@ function setupGoogleLoginWithRetry(
         !window.google.accounts ||
         !window.google.accounts.id
     ) {
-        if (intentos > 0) {
+        if (
+            intentos >
+            0
+        ) {
             setTimeout(
                 () => {
                     setupGoogleLoginWithRetry(
-                        intentos - 1
+                        intentos -
+                        1
                     );
                 },
                 300
@@ -358,7 +392,8 @@ async function handleGoogleResponse(
         const contentType =
             respuestaBackend.headers.get(
                 "content-type"
-            ) || "";
+            ) ||
+            "";
 
         if (
             !contentType.includes(
@@ -434,7 +469,9 @@ function googleSignOutLocal() {
     );
 }
 
-function showSuccess(usuario) {
+function showSuccess(
+    usuario
+) {
     const successMessage =
         document.getElementById(
             "successMessage"
@@ -461,11 +498,11 @@ function showSuccess(usuario) {
     }
 
     /*
-     * localStorage se utiliza únicamente
+     * localStorage se utiliza solamente
      * para mostrar información en la interfaz.
      *
-     * La autenticación y los permisos reales
-     * se validan desde el backend.
+     * La autenticación real permanece
+     * en la sesión del backend.
      */
     localStorage.setItem(
         "usuarioCRM",
@@ -487,7 +524,7 @@ function showSuccess(usuario) {
     setTimeout(
         () => {
             window.location.replace(
-                "/Views/dashboard.html"
+                DASHBOARD_URL
             );
         },
         1200

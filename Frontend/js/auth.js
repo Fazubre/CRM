@@ -1,17 +1,60 @@
 (() => {
+    const config =
+        window.CRM_CONFIG;
+
+    if (
+        !config ||
+        !config.API_BASE_URL ||
+        !config.LOGIN_URL
+    ) {
+        console.error(
+            "CRM_CONFIG no está disponible. Debes cargar config.js antes de auth.js."
+        );
+
+        return;
+    }
+
+    const API_BASE_URL =
+        String(
+            config.API_BASE_URL
+        ).replace(
+            /\/$/,
+            ""
+        );
+
     const LOGIN_URL =
-        "/Views/LogIn.html";
+        config.LOGIN_URL;
 
     const SESSION_URL =
-        "/auth/session";
+        `${API_BASE_URL}/auth/session`;
 
     const LOGOUT_URL =
-        "/auth/logout";
+        `${API_BASE_URL}/auth/logout`;
+
+    const API_ORIGIN =
+        new URL(
+            API_BASE_URL
+        ).origin;
+
+    const LOGIN_PATHNAME =
+        new URL(
+            LOGIN_URL,
+            window.location.origin
+        ).pathname;
+
+    const SESSION_REQUEST_URL =
+        new URL(
+            SESSION_URL
+        );
 
     const originalFetch =
-        window.fetch.bind(window);
+        window.fetch.bind(
+            window
+        );
 
-    function getRequestUrl(input) {
+    function getRequestUrl(
+        input
+    ) {
         try {
             const value =
                 typeof input ===
@@ -28,15 +71,21 @@
         }
     }
 
-    function isSameOriginRequest(
+    function isApiRequest(
         input
     ) {
         const url =
-            getRequestUrl(input);
+            getRequestUrl(
+                input
+            );
+
+        if (!url) {
+            return false;
+        }
 
         return (
-            url?.origin ===
-            window.location.origin
+            url.origin ===
+            API_ORIGIN
         );
     }
 
@@ -44,11 +93,19 @@
         input
     ) {
         const url =
-            getRequestUrl(input);
+            getRequestUrl(
+                input
+            );
+
+        if (!url) {
+            return false;
+        }
 
         return (
-            url?.pathname ===
-            SESSION_URL
+            url.origin ===
+                SESSION_REQUEST_URL.origin &&
+            url.pathname ===
+                SESSION_REQUEST_URL.pathname
         );
     }
 
@@ -59,7 +116,7 @@
 
         if (
             window.location.pathname !==
-            LOGIN_URL
+            LOGIN_PATHNAME
         ) {
             window.location.replace(
                 LOGIN_URL
@@ -68,8 +125,11 @@
     }
 
     /*
-     * Hace que las solicitudes existentes
-     * incluyan la cookie automáticamente.
+     * Intercepta las solicitudes hechas con fetch.
+     *
+     * Cuando la solicitud va hacia el backend
+     * de Render, incluye automáticamente la
+     * cookie de sesión.
      */
     window.fetch =
         async function (
@@ -81,7 +141,7 @@
             };
 
             if (
-                isSameOriginRequest(
+                isApiRequest(
                     input
                 ) &&
                 requestOptions.credentials ===
@@ -97,9 +157,21 @@
                     requestOptions
                 );
 
+            /*
+             * Si una API protegida devuelve 401,
+             * elimina los datos locales y envía
+             * al usuario al login.
+             *
+             * La consulta /auth/session se excluye
+             * porque validateSession se encarga
+             * directamente de ese caso.
+             */
             if (
-                response.status === 401 &&
-                !isSessionRequest(input)
+                response.status ===
+                    401 &&
+                !isSessionRequest(
+                    input
+                )
             ) {
                 redirectToLogin();
             }
@@ -113,9 +185,14 @@
                 await originalFetch(
                     SESSION_URL,
                     {
-                        method: "GET",
+                        method:
+                            "GET",
+
                         credentials:
                             "include",
+
+                        cache:
+                            "no-store",
 
                         headers: {
                             Accept:
@@ -126,6 +203,27 @@
 
             if (!response.ok) {
                 redirectToLogin();
+
+                return null;
+            }
+
+            const contentType =
+                response.headers.get(
+                    "content-type"
+                ) ||
+                "";
+
+            if (
+                !contentType.includes(
+                    "application/json"
+                )
+            ) {
+                console.error(
+                    "La ruta /auth/session no devolvió JSON."
+                );
+
+                redirectToLogin();
+
                 return null;
             }
 
@@ -137,14 +235,16 @@
                 !data.usuario
             ) {
                 redirectToLogin();
+
                 return null;
             }
 
             /*
-             * localStorage se mantiene únicamente
-             * para mostrar datos en la interfaz.
+             * localStorage se usa solamente
+             * para mostrar información en la interfaz.
              *
-             * No se utiliza para autorizar acciones.
+             * La autorización real se valida
+             * en el backend mediante la sesión.
              */
             localStorage.setItem(
                 "usuarioCRM",
@@ -171,7 +271,9 @@
             await originalFetch(
                 LOGOUT_URL,
                 {
-                    method: "POST",
+                    method:
+                        "POST",
+
                     credentials:
                         "include",
 
@@ -204,10 +306,26 @@
             );
 
         logoutButtons.forEach(
-            (button) => {
+            (
+                button
+            ) => {
+                if (
+                    button.dataset
+                        .crmLogoutConfigured ===
+                    "true"
+                ) {
+                    return;
+                }
+
+                button.dataset
+                    .crmLogoutConfigured =
+                    "true";
+
                 button.addEventListener(
                     "click",
-                    async (event) => {
+                    async (
+                        event
+                    ) => {
                         event.preventDefault();
 
                         await logout();
@@ -217,30 +335,47 @@
         );
     }
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        async () => {
-            const user =
-                await validateSession();
+    async function initializeAuth() {
+        /*
+         * Este archivo se debe cargar únicamente
+         * en las páginas privadas del CRM.
+         */
+        const user =
+            await validateSession();
 
-            if (!user) {
-                return;
-            }
-
-            configureLogoutButtons();
-
-            window.dispatchEvent(
-                new CustomEvent(
-                    "crm:session-ready",
-                    {
-                        detail: {
-                            user
-                        }
-                    }
-                )
-            );
+        if (!user) {
+            return;
         }
-    );
+
+        configureLogoutButtons();
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "crm:session-ready",
+                {
+                    detail: {
+                        user
+                    }
+                }
+            )
+        );
+    }
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeAuth,
+            {
+                once:
+                    true
+            }
+        );
+    } else {
+        initializeAuth();
+    }
 
     window.CRMAuth = {
         validateSession,
