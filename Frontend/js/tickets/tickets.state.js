@@ -30,7 +30,13 @@ export const ALLOWED_FILE_TYPES = [
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "image/png",
     "image/jpeg",
-    "text/plain"
+    "text/plain",
+    "image/svg+xml",
+    "image/gif",
+    "video/mp4",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/mp3"
 ];
 
 export const ALLOWED_FILE_EXTENSIONS = [
@@ -42,7 +48,16 @@ export const ALLOWED_FILE_EXTENSIONS = [
     ".png",
     ".jpg",
     ".jpeg",
-    ".txt"
+    ".txt",
+    ".svg",
+    ".gif",
+    ".mp4",
+    ".mov",
+    ".avi",
+    ".mkv",
+    ".mp3",
+    ".wav",
+    ".xml"
 ];
 
 export const ticketsState = {

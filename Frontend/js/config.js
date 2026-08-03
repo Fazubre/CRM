@@ -3,26 +3,26 @@ window.CRM_CONFIG = Object.freeze({
         "https://crm-c40k.onrender.com",
 
     FRONTEND_BASE_URL:
-        "https://voyager-cr.com/CRM",
+        "https://voyager-cr.com/CRM/Frontend",
 
     LOGIN_URL:
-        "/CRM/Views/LogIn.html",
+        "/CRM/Frontend/Views/LogIn.html",
 
     DASHBOARD_URL:
-        "/CRM/Views/dashboard.html",
+        "/CRM/Frontend/Views/dashboard.html",
 
     TICKETS_URL:
-        "/CRM/Views/tickets.html",
+        "/CRM/Frontend/Views/tickets.html",
 
     CLIENTS_URL:
-        "/CRM/Views/clients.html",
+        "/CRM/Frontend/Views/clients.html",
 
     EMPLOYEES_URL:
-        "/CRM/Views/employee.html",
+        "/CRM/Frontend/Views/employee.html",
 
     CALENDAR_URL:
-        "/CRM/Views/calendar.html",
+        "/CRM/Frontend/Views/calendar.html",
 
     COMPONENTS_URL:
-        "/CRM/Views/components"
+        "/CRM/Frontend/Views/components"
 });
