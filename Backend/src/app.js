@@ -44,10 +44,34 @@ const uploadsPath =
 
 const allowedOrigins = [
     process.env.APP_ORIGIN,
+    process.env.APP_ORIGIN_WWW,
+
+    "https://voyager-cr.com",
+    "https://www.voyager-cr.com",
+
     "https://crm-c40k.onrender.com",
+
     "http://localhost:3000",
-    "http://127.0.0.1:3000"
-].filter(Boolean);
+    "http://127.0.0.1:3000",
+
+    "http://localhost:5500",
+    "http://127.0.0.1:5500"
+]
+    .filter(Boolean)
+    .map(
+        (
+            origin
+        ) => {
+            return String(
+                origin
+            )
+                .trim()
+                .replace(
+                    /\/$/,
+                    ""
+                );
+        }
+    );
 
 app.set(
     "trust proxy",
@@ -60,12 +84,31 @@ app.disable(
 
 app.use(
     cors({
-        credentials: true,
+        credentials:
+            true,
 
-        origin(origin, callback) {
+        methods: [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS"
+        ],
+
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization"
+        ],
+
+        origin(
+            origin,
+            callback
+        ) {
             /*
-             * Las solicitudes del mismo servidor
-             * pueden llegar sin encabezado Origin.
+             * Las solicitudes directas,
+             * health checks y algunas llamadas
+             * internas pueden llegar sin Origin.
              */
             if (!origin) {
                 return callback(
@@ -74,9 +117,19 @@ app.use(
                 );
             }
 
+            const normalizedOrigin =
+                String(
+                    origin
+                )
+                    .trim()
+                    .replace(
+                        /\/$/,
+                        ""
+                    );
+
             if (
                 allowedOrigins.includes(
-                    origin
+                    normalizedOrigin
                 )
             ) {
                 return callback(
@@ -100,7 +153,8 @@ app.use(
 
 app.use(
     express.urlencoded({
-        extended: true
+        extended:
+            true
     })
 );
 
@@ -108,7 +162,11 @@ app.use(
  * Encabezados básicos de seguridad.
  */
 app.use(
-    (req, res, next) => {
+    (
+        req,
+        res,
+        next
+    ) => {
         res.setHeader(
             "X-Content-Type-Options",
             "nosniff"
@@ -133,7 +191,10 @@ app.use(
  */
 app.get(
     "/",
-    (req, res) => {
+    (
+        req,
+        res
+    ) => {
         return res.redirect(
             "/Views/LogIn.html"
         );
@@ -142,9 +203,14 @@ app.get(
 
 app.get(
     "/health",
-    (req, res) => {
+    (
+        req,
+        res
+    ) => {
         return res.json({
-            status: "ok",
+            status:
+                "ok",
+
             message:
                 "API is healthy"
         });
@@ -153,7 +219,10 @@ app.get(
 
 app.get(
     "/test",
-    (req, res) => {
+    (
+        req,
+        res
+    ) => {
         return res.json({
             message:
                 "API is working!"
@@ -165,7 +234,7 @@ app.get(
  * Rutas de autenticación.
  *
  * /auth/google es pública.
- * /auth/session se protege dentro de GoogleLogIn.js.
+ * /auth/session valida la sesión.
  * /auth/logout elimina la sesión.
  */
 app.use(
@@ -213,14 +282,18 @@ app.use(
 );
 
 /*
- * Protección de las páginas privadas.
+ * Protección del frontend que todavía
+ * se encuentra en Render.
  *
- * LogIn.html es la única página pública
- * dentro de la carpeta Views.
+ * LogIn.html permanece público.
  */
 app.use(
     "/Views",
-    (req, res, next) => {
+    (
+        req,
+        res,
+        next
+    ) => {
         const requestedPath =
             req.path
                 .toLowerCase();
@@ -242,7 +315,7 @@ app.use(
 );
 
 /*
- * Los archivos subidos requieren sesión.
+ * Los archivos locales requieren sesión.
  */
 app.use(
     "/uploads",
@@ -253,10 +326,8 @@ app.use(
 );
 
 /*
- * Servir el frontend.
- *
- * Debe colocarse después del middleware
- * que protege la carpeta Views.
+ * Se conserva temporalmente el frontend
+ * de Render durante la migración.
  */
 app.use(
     express.static(
@@ -268,7 +339,10 @@ app.use(
  * Ruta no encontrada.
  */
 app.use(
-    (req, res) => {
+    (
+        req,
+        res
+    ) => {
         const acceptsHtml =
             String(
                 req.headers.accept ||
@@ -288,7 +362,9 @@ app.use(
         return res
             .status(404)
             .json({
-                ok: false,
+                ok:
+                    false,
+
                 mensaje:
                     "Ruta no encontrada."
             });
@@ -299,7 +375,12 @@ app.use(
  * Manejo general de errores.
  */
 app.use(
-    (error, req, res, next) => {
+    (
+        error,
+        req,
+        res,
+        next
+    ) => {
         console.error(
             "Error general del servidor:",
             error
@@ -312,7 +393,9 @@ app.use(
             return res
                 .status(403)
                 .json({
-                    ok: false,
+                    ok:
+                        false,
+
                     mensaje:
                         error.message
                 });
@@ -321,11 +404,14 @@ app.use(
         return res
             .status(500)
             .json({
-                ok: false,
+                ok:
+                    false,
+
                 mensaje:
                     "Ocurrió un error interno en el servidor."
             });
     }
 );
 
-module.exports = app;
+module.exports =
+    app;

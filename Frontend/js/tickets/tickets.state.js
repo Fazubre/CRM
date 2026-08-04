@@ -1,5 +1,26 @@
+const config =
+    window.CRM_CONFIG ||
+    {};
+
+const IS_RENDER_HOST =
+    window.location.hostname
+        .toLowerCase()
+        .endsWith(
+            ".onrender.com"
+        );
+
 export const API_BASE_URL =
-    window.location.origin;
+    String(
+        IS_RENDER_HOST
+            ? window.location.origin
+            : (
+                config.API_BASE_URL ||
+                "https://crm-c40k.onrender.com"
+            )
+    ).replace(
+        /\/$/,
+        ""
+    );
 
 export const TICKETS_URL =
     `${API_BASE_URL}/tickets`;
@@ -64,12 +85,20 @@ export const ticketsState = {
     mensajeTablaVacia:
         "No hay tickets registrados.",
 
-    tickets: [],
-    empleados: [],
-    clientes: [],
-    areas: [],
+    tickets:
+        [],
 
-    comentarios: [],
+    empleados:
+        [],
+
+    clientes:
+        [],
+
+    areas:
+        [],
+
+    comentarios:
+        [],
 
     ticketComentariosActual:
         null,
@@ -78,9 +107,16 @@ export const ticketsState = {
         null,
 
     modals: {
-        agregar: null,
-        ver: null,
-        editar: null,
-        comentarios: null
+        agregar:
+            null,
+
+        ver:
+            null,
+
+        editar:
+            null,
+
+        comentarios:
+            null
     }
 };

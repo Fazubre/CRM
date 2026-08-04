@@ -1,16 +1,26 @@
 const crypto = require("crypto");
-const { db } = require("./Firebase");
 
-const SESSION_COOKIE_NAME = "crm_session";
+const {
+    db
+} = require("./Firebase");
 
-const horasConfiguradas = Number(
-    process.env.SESSION_DURATION_HOURS || 8
-);
+const SESSION_COOKIE_NAME =
+    "crm_session";
+
+const configuredHours =
+    Number(
+        process.env
+            .SESSION_DURATION_HOURS ||
+        8
+    );
 
 const SESSION_DURATION_HOURS =
-    Number.isFinite(horasConfiguradas) &&
-    horasConfiguradas > 0
-        ? horasConfiguradas
+    Number.isFinite(
+        configuredHours
+    ) &&
+    configuredHours >
+        0
+        ? configuredHours
         : 8;
 
 const SESSION_DURATION_MS =
@@ -19,46 +29,97 @@ const SESSION_DURATION_MS =
     60 *
     1000;
 
-function hashSessionToken(token) {
-    return crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
+function isProductionEnvironment() {
+    return (
+        process.env.NODE_ENV ===
+            "production" ||
+        process.env.RENDER ===
+            "true"
+    );
 }
 
-function getCookieValue(req, cookieName) {
+function hashSessionToken(
+    token
+) {
+    return crypto
+        .createHash(
+            "sha256"
+        )
+        .update(
+            token
+        )
+        .digest(
+            "hex"
+        );
+}
+
+function getCookieValue(
+    req,
+    cookieName
+) {
     const cookieHeader =
-        req.headers.cookie || "";
+        req.headers.cookie ||
+        "";
 
-    const cookies = cookieHeader
-        .split(";")
-        .map((cookie) => cookie.trim())
-        .filter(Boolean);
+    const cookies =
+        cookieHeader
+            .split(
+                ";"
+            )
+            .map(
+                (
+                    cookie
+                ) => {
+                    return cookie.trim();
+                }
+            )
+            .filter(
+                Boolean
+            );
 
-    for (const cookie of cookies) {
+    for (
+        const cookie
+        of cookies
+    ) {
         const separatorIndex =
-            cookie.indexOf("=");
+            cookie.indexOf(
+                "="
+            );
 
-        if (separatorIndex === -1) {
+        if (
+            separatorIndex ===
+            -1
+        ) {
             continue;
         }
 
         const name =
             cookie
-                .slice(0, separatorIndex)
+                .slice(
+                    0,
+                    separatorIndex
+                )
                 .trim();
 
         const rawValue =
             cookie
-                .slice(separatorIndex + 1)
+                .slice(
+                    separatorIndex +
+                    1
+                )
                 .trim();
 
-        if (name !== cookieName) {
+        if (
+            name !==
+            cookieName
+        ) {
             continue;
         }
 
         try {
-            return decodeURIComponent(rawValue);
+            return decodeURIComponent(
+                rawValue
+            );
         } catch (error) {
             return "";
         }
@@ -67,38 +128,70 @@ function getCookieValue(req, cookieName) {
     return "";
 }
 
-function getSessionTokenFromRequest(req) {
+function getSessionTokenFromRequest(
+    req
+) {
     return getCookieValue(
         req,
         SESSION_COOKIE_NAME
     );
 }
 
+function getSessionCookieAttributes() {
+    /*
+     * En Render la cookie debe poder viajar
+     * desde voyager-cr.com hacia onrender.com.
+     */
+    if (
+        isProductionEnvironment()
+    ) {
+        return [
+            "SameSite=None",
+            "Secure"
+        ];
+    }
+
+    /*
+     * En localhost se conserva Lax,
+     * porque Secure requiere HTTPS.
+     */
+    return [
+        "SameSite=Lax"
+    ];
+}
+
 function serializeSessionCookie(
     token,
     maxAgeSeconds
 ) {
-    const isProduction =
-        process.env.NODE_ENV ===
-        "production";
-
     const cookieParts = [
-        `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}`,
+        (
+            `${SESSION_COOKIE_NAME}=` +
+            `${encodeURIComponent(token)}`
+        ),
+
         "Path=/",
         "HttpOnly",
-        "SameSite=Lax",
-        `Max-Age=${maxAgeSeconds}`,
-        "Priority=High"
+
+        (
+            `Max-Age=` +
+            `${maxAgeSeconds}`
+        ),
+
+        "Priority=High",
+
+        ...getSessionCookieAttributes()
     ];
 
-    if (isProduction) {
-        cookieParts.push("Secure");
-    }
-
-    return cookieParts.join("; ");
+    return cookieParts.join(
+        "; "
+    );
 }
 
-function setSessionCookie(res, token) {
+function setSessionCookie(
+    res,
+    token
+) {
     const maxAgeSeconds =
         Math.floor(
             SESSION_DURATION_MS /
@@ -107,6 +200,7 @@ function setSessionCookie(res, token) {
 
     res.append(
         "Set-Cookie",
+
         serializeSessionCookie(
             token,
             maxAgeSeconds
@@ -114,27 +208,28 @@ function setSessionCookie(res, token) {
     );
 }
 
-function clearSessionCookie(res) {
-    const isProduction =
-        process.env.NODE_ENV ===
-        "production";
-
+function clearSessionCookie(
+    res
+) {
+    /*
+     * Para eliminar la cookie hay que usar
+     * los mismos atributos utilizados al crearla.
+     */
     const cookieParts = [
         `${SESSION_COOKIE_NAME}=`,
         "Path=/",
         "HttpOnly",
-        "SameSite=Lax",
         "Max-Age=0",
-        "Expires=Thu, 01 Jan 1970 00:00:00 GMT"
-    ];
+        "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
 
-    if (isProduction) {
-        cookieParts.push("Secure");
-    }
+        ...getSessionCookieAttributes()
+    ];
 
     res.append(
         "Set-Cookie",
-        cookieParts.join("; ")
+        cookieParts.join(
+            "; "
+        )
     );
 }
 
@@ -148,12 +243,19 @@ async function createSession(
         );
     }
 
-    const token = crypto
-        .randomBytes(48)
-        .toString("base64url");
+    const token =
+        crypto
+            .randomBytes(
+                48
+            )
+            .toString(
+                "base64url"
+            );
 
     const sessionId =
-        hashSessionToken(token);
+        hashSessionToken(
+            token
+        );
 
     const createdAt =
         new Date();
@@ -165,18 +267,26 @@ async function createSession(
         );
 
     await db
-        .collection("sessions")
-        .doc(sessionId)
+        .collection(
+            "sessions"
+        )
+        .doc(
+            sessionId
+        )
         .set({
             employeeId:
-                String(employeeId),
+                String(
+                    employeeId
+                ),
 
             createdAt,
 
             expiresAt,
 
             userAgent:
-                req.get("user-agent") ||
+                req.get(
+                    "user-agent"
+                ) ||
                 ""
         });
 
@@ -187,7 +297,9 @@ async function createSession(
     };
 }
 
-function convertToDate(value) {
+function convertToDate(
+    value
+) {
     if (!value) {
         return null;
     }
@@ -200,7 +312,9 @@ function convertToDate(value) {
     }
 
     const date =
-        new Date(value);
+        new Date(
+            value
+        );
 
     return Number.isNaN(
         date.getTime()
@@ -209,25 +323,38 @@ function convertToDate(value) {
         : date;
 }
 
-async function getSessionFromRequest(req) {
+async function getSessionFromRequest(
+    req
+) {
     const token =
-        getSessionTokenFromRequest(req);
+        getSessionTokenFromRequest(
+            req
+        );
 
     if (!token) {
         return null;
     }
 
     const sessionId =
-        hashSessionToken(token);
+        hashSessionToken(
+            token
+        );
 
-    const sessionRef = db
-        .collection("sessions")
-        .doc(sessionId);
+    const sessionRef =
+        db
+            .collection(
+                "sessions"
+            )
+            .doc(
+                sessionId
+            );
 
     const sessionSnapshot =
         await sessionRef.get();
 
-    if (!sessionSnapshot.exists) {
+    if (
+        !sessionSnapshot.exists
+    ) {
         return null;
     }
 
@@ -250,8 +377,11 @@ async function getSessionFromRequest(req) {
     }
 
     return {
-        id: sessionSnapshot.id,
+        id:
+            sessionSnapshot.id,
+
         ...sessionData,
+
         expiresAt
     };
 }
@@ -264,8 +394,12 @@ async function deleteSessionById(
     }
 
     await db
-        .collection("sessions")
-        .doc(sessionId)
+        .collection(
+            "sessions"
+        )
+        .doc(
+            sessionId
+        )
         .delete();
 }
 
@@ -273,14 +407,18 @@ async function deleteSessionFromRequest(
     req
 ) {
     const token =
-        getSessionTokenFromRequest(req);
+        getSessionTokenFromRequest(
+            req
+        );
 
     if (!token) {
         return;
     }
 
     const sessionId =
-        hashSessionToken(token);
+        hashSessionToken(
+            token
+        );
 
     await deleteSessionById(
         sessionId

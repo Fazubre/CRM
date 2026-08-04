@@ -13,25 +13,40 @@ import {
     getClientId
 } from "./clients.utils.js";
 
+const TABLE_SELECTOR =
+    "#tablaClientes";
+
 export function getClientsTbody() {
     return document.querySelector(
-        "#tablaClientes tbody"
+        `${TABLE_SELECTOR} tbody`
     );
 }
 
 export function findClientById(
     id
 ) {
+    const clientes =
+        Array.isArray(
+            clientsState.clientesCache
+        )
+            ? clientsState.clientesCache
+            : [];
+
     return (
-        clientsState
-            .clientesCache
-            .find(
-                (cliente) =>
+        clientes.find(
+            (
+                cliente
+            ) => {
+                return (
                     String(
-                        getClientId(cliente)
+                        getClientId(
+                            cliente
+                        )
                     ) ===
                     String(id)
-            ) ||
+                );
+            }
+        ) ||
         null
     );
 }
@@ -41,6 +56,10 @@ export async function loadClients() {
         getClientsTbody();
 
     if (!tbody) {
+        console.error(
+            "No existe el cuerpo de la tabla #tablaClientes."
+        );
+
         return;
     }
 
@@ -52,6 +71,9 @@ export async function loadClients() {
 
         const clientes =
             await getClients();
+
+        clientsState.clientes =
+            clientes;
 
         clientsState.clientesCache =
             clientes;
@@ -69,6 +91,9 @@ export async function loadClients() {
             "Error cargando clientes:",
             error
         );
+
+        clientsState.clientes =
+            [];
 
         clientsState.clientesCache =
             [];
@@ -96,7 +121,12 @@ export function renderClients(
         return;
     }
 
-    if (!clientes.length) {
+    if (
+        !Array.isArray(
+            clientes
+        ) ||
+        clientes.length === 0
+    ) {
         tbody.innerHTML =
             "";
 
@@ -106,7 +136,9 @@ export function renderClients(
     tbody.innerHTML =
         clientes
             .map(
-                (cliente) => {
+                (
+                    cliente
+                ) => {
                     const clienteId =
                         getClientId(
                             cliente
@@ -174,7 +206,9 @@ export function renderClients(
                                     <button
                                         type="button"
                                         class="btn btn-outline-info btn-ver-cliente"
-                                        data-id="${escapeHtml(clienteId)}"
+                                        data-id="${escapeHtml(
+                                            clienteId
+                                        )}"
                                     >
                                         Ver
                                     </button>
@@ -182,7 +216,9 @@ export function renderClients(
                                     <button
                                         type="button"
                                         class="btn btn-outline-warning btn-editar-cliente"
-                                        data-id="${escapeHtml(clienteId)}"
+                                        data-id="${escapeHtml(
+                                            clienteId
+                                        )}"
                                     >
                                         Editar
                                     </button>
@@ -190,7 +226,9 @@ export function renderClients(
                                     <button
                                         type="button"
                                         class="btn btn-outline-danger btn-eliminar-cliente"
-                                        data-id="${escapeHtml(clienteId)}"
+                                        data-id="${escapeHtml(
+                                            clienteId
+                                        )}"
                                     >
                                         Eliminar
                                     </button>
@@ -210,19 +248,32 @@ export function destroyDataTable() {
 
     if (
         !jquery ||
-        !jquery.fn?.DataTable ||
+        !jquery.fn?.DataTable
+    ) {
+        return;
+    }
+
+    if (
         !jquery.fn.DataTable.isDataTable(
-            "#tablaClientes"
+            TABLE_SELECTOR
         )
     ) {
         return;
     }
 
-    jquery(
-        "#tablaClientes"
-    )
-        .DataTable()
-        .destroy();
+    try {
+        jquery(
+            TABLE_SELECTOR
+        )
+            .DataTable()
+            .clear()
+            .destroy();
+    } catch (error) {
+        console.warn(
+            "No fue posible destruir DataTables:",
+            error
+        );
+    }
 }
 
 export function initDataTable() {
@@ -241,18 +292,44 @@ export function initDataTable() {
         return;
     }
 
+    if (
+        jquery.fn.DataTable.isDataTable(
+            TABLE_SELECTOR
+        )
+    ) {
+        return;
+    }
+
     jquery(
-        "#tablaClientes"
+        TABLE_SELECTOR
     ).DataTable({
-        responsive: true,
-        autoWidth: false,
-        pageLength: 10,
+        responsive:
+            true,
+
+        autoWidth:
+            false,
+
+        pageLength:
+            10,
 
         order: [
             [
                 0,
                 "asc"
             ]
+        ],
+
+        columnDefs: [
+            {
+                targets:
+                    7,
+
+                orderable:
+                    false,
+
+                searchable:
+                    false
+            }
         ],
 
         language: {
@@ -296,7 +373,9 @@ function renderEstadoCliente(
         String(
             estado ||
             "activo"
-        ).toLowerCase();
+        )
+            .trim()
+            .toLowerCase();
 
     let clase =
         "bg-success";
@@ -304,7 +383,10 @@ function renderEstadoCliente(
     let texto =
         "Activo";
 
-    if (valor === "inactivo") {
+    if (
+        valor ===
+        "inactivo"
+    ) {
         clase =
             "bg-secondary";
 
@@ -312,7 +394,10 @@ function renderEstadoCliente(
             "Inactivo";
     }
 
-    if (valor === "prospecto") {
+    if (
+        valor ===
+        "prospecto"
+    ) {
         clase =
             "bg-warning text-dark";
 
@@ -322,7 +407,9 @@ function renderEstadoCliente(
 
     return `
         <span class="badge ${clase}">
-            ${escapeHtml(texto)}
+            ${escapeHtml(
+                texto
+            )}
         </span>
     `;
 }

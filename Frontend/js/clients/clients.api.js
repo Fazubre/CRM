@@ -1,111 +1,122 @@
-import {
-    CLIENTS_URL
-} from "./clients.state.js";
+const config =
+    window.CRM_CONFIG ||
+    {};
 
-async function readResponseData(response) {
-    const responseText =
-        await response.text();
-
-    if (!responseText) {
-        return {
-            ok: response.ok
-        };
-    }
-
-    try {
-        return JSON.parse(responseText);
-    } catch (error) {
-        return {
-            ok: false,
-            mensaje: responseText
-        };
-    }
-}
-
-async function request(
-    url,
-    options = {}
-) {
-    const response =
-        await fetch(url, options);
-
-    const data =
-        await readResponseData(response);
-
-    if (
-        !response.ok ||
-        data.ok === false
-    ) {
-        throw new Error(
-            data.mensaje ||
-            "No fue posible completar la operación solicitada."
+const IS_RENDER_HOST =
+    window.location.hostname
+        .toLowerCase()
+        .endsWith(
+            ".onrender.com"
         );
-    }
 
-    return data;
-}
-
-export async function getClients() {
-    const data =
-        await request(CLIENTS_URL);
-
-    if (Array.isArray(data.clientes)) {
-        return data.clientes;
-    }
-
-    if (Array.isArray(data.clients)) {
-        return data.clients;
-    }
-
-    return [];
-}
-
-export async function createClient(
-    payload
-) {
-    return request(
-        CLIENTS_URL,
-        {
-            method: "POST",
-
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
-
-            body:
-                JSON.stringify(payload)
-        }
+export const API_BASE_URL =
+    String(
+        IS_RENDER_HOST
+            ? window.location.origin
+            : (
+                config.API_BASE_URL ||
+                "https://crm-c40k.onrender.com"
+            )
+    ).replace(
+        /\/$/,
+        ""
     );
-}
 
-export async function updateClient(
-    clienteId,
-    payload
-) {
-    return request(
-        `${CLIENTS_URL}/${encodeURIComponent(clienteId)}`,
-        {
-            method: "PUT",
+export const TICKETS_URL =
+    `${API_BASE_URL}/tickets`;
 
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
+export const EMPLEADOS_URL =
+    `${API_BASE_URL}/employees`;
 
-            body:
-                JSON.stringify(payload)
-        }
-    );
-}
+export const CLIENTES_URL =
+    `${API_BASE_URL}/clients`;
 
-export async function deleteClient(
-    clienteId
-) {
-    return request(
-        `${CLIENTS_URL}/${encodeURIComponent(clienteId)}`,
-        {
-            method: "DELETE"
-        }
-    );
-}
+export const AREAS_URL =
+    `${API_BASE_URL}/areas`;
+
+export const MAX_FILE_SIZE =
+    50 * 1024 * 1024;
+
+export const MAX_FOLDER_FILES =
+    100;
+
+export const MAX_FOLDER_TOTAL_SIZE =
+    100 * 1024 * 1024;
+
+export const ALLOWED_FILE_TYPES = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "image/png",
+    "image/jpeg",
+    "text/plain",
+    "image/svg+xml",
+    "image/gif",
+    "video/mp4",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/mp3"
+];
+
+export const ALLOWED_FILE_EXTENSIONS = [
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".txt",
+    ".svg",
+    ".gif",
+    ".mp4",
+    ".mov",
+    ".avi",
+    ".mkv",
+    ".mp3",
+    ".wav",
+    ".xml"
+];
+
+export const ticketsState = {
+    mensajeTablaVacia:
+        "No hay tickets registrados.",
+
+    tickets:
+        [],
+
+    empleados:
+        [],
+
+    clientes:
+        [],
+
+    areas:
+        [],
+
+    comentarios:
+        [],
+
+    ticketComentariosActual:
+        null,
+
+    comentarioEditando:
+        null,
+
+    modals: {
+        agregar:
+            null,
+
+        ver:
+            null,
+
+        editar:
+            null,
+
+        comentarios:
+            null
+    }
+};

@@ -12,6 +12,22 @@ import {
     setTextValue
 } from "./clients.utils.js";
 
+const IS_RENDER_HOST =
+    window.location.hostname
+        .toLowerCase()
+        .endsWith(
+            ".onrender.com"
+        );
+
+const COMPONENTS_BASE_URL =
+    window.CRM_CONFIG
+        ?.COMPONENTS_URL ||
+    (
+        IS_RENDER_HOST
+            ? "/Views/components"
+            : "/CRM/Frontend/Views/components"
+    );
+
 const MODAL_CONFIG = [
     {
         contenedorId:
@@ -21,7 +37,7 @@ const MODAL_CONFIG = [
             "modalAgregarCliente",
 
         ruta:
-            "./components/Clients/modal-add-client.html"
+            `${COMPONENTS_BASE_URL}/clients/modal-add-client.html`
     },
     {
         contenedorId:
@@ -31,7 +47,7 @@ const MODAL_CONFIG = [
             "modalEditarCliente",
 
         ruta:
-            "./components/Clients/modal-edit-client.html"
+            `${COMPONENTS_BASE_URL}/clients/modal-edit-client.html`
     },
     {
         contenedorId:
@@ -41,7 +57,7 @@ const MODAL_CONFIG = [
             "modalVerCliente",
 
         ruta:
-            "./components/Clients/modal-view-client.html"
+            `${COMPONENTS_BASE_URL}/clients/modal-view-client.html`
     },
     {
         contenedorId:
@@ -51,7 +67,7 @@ const MODAL_CONFIG = [
             "modalEliminarCliente",
 
         ruta:
-            "./components/Clients/modal-elimin-client.html"
+            `${COMPONENTS_BASE_URL}/clients/modal-elimin-client.html`
     }
 ];
 
@@ -70,9 +86,13 @@ function removeOldInlineModals() {
     ];
 
     oldModalIds.forEach(
-        (id) => {
+        (
+            id
+        ) => {
             document
-                .getElementById(id)
+                .getElementById(
+                    id
+                )
                 ?.remove();
         }
     );
@@ -123,7 +143,19 @@ export async function loadModalsHtml() {
         }
 
         const response =
-            await fetch(modal.ruta);
+            await fetch(
+                modal.ruta,
+                {
+                    method:
+                        "GET",
+
+                    credentials:
+                        "same-origin",
+
+                    cache:
+                        "no-store"
+                }
+            );
 
         if (!response.ok) {
             throw new Error(
@@ -251,7 +283,9 @@ export function openDeleteClientModal(
 ) {
     setInputValue(
         "eliminarClienteId",
-        getClientId(cliente)
+        getClientId(
+            cliente
+        )
     );
 
     setTextValue(
@@ -292,7 +326,9 @@ function fillViewClientModal(
 ) {
     setTextValue(
         "verClienteId",
-        getClientId(cliente)
+        getClientId(
+            cliente
+        )
     );
 
     setTextValue(
@@ -317,8 +353,10 @@ function fillViewClientModal(
 
     setTextValue(
         "verClienteTelefono",
-        cliente.telefono ||
-        "-"
+        formatClientPhone(
+            cliente.codigo_area,
+            cliente.telefono
+        )
     );
 
     setTextValue(
@@ -377,7 +415,9 @@ function fillEditClientForm(
     cliente
 ) {
     const clienteId =
-        getClientId(cliente);
+        getClientId(
+            cliente
+        );
 
     setInputValue(
         "editarClienteId",
@@ -518,4 +558,29 @@ function setClienteCreadoPorActual() {
         "clienteCreadoPor",
         getUsuarioNombreActual()
     );
+}
+
+function formatClientPhone(
+    codigoArea,
+    telefono
+) {
+    const area =
+        String(
+            codigoArea ||
+            ""
+        ).trim();
+
+    const numero =
+        String(
+            telefono ||
+            ""
+        ).trim();
+
+    if (!numero) {
+        return "-";
+    }
+
+    return area
+        ? `+${area} ${numero}`
+        : numero;
 }
