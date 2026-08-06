@@ -1,85 +1,81 @@
-const express = require(
-    "express"
-);
+const express = require("express");
 
 const ticketCommentRoutes =
-    require(
-        "./TicketComment.route"
-    );
+    require("./TicketComment.route");
 
 const {
     postTicket,
     getTickets,
+    getDashboardTickets,
     getTicket,
     putTicket,
     removeTicket
-} = require(
-    "../controllers/Ticket.controller"
-);
+} = require("../controllers/Ticket.controller");
 
 const uploadTicketFile =
-    require(
-        "../middlewares/uploadTicketFile"
-    );
+    require("../middlewares/uploadTicketFile");
 
 const handleUploadError =
-    require(
-        "../middlewares/handleUploadError"
-    );
+    require("../middlewares/handleUploadError");
 
-const router =
-    express.Router();
+const router = express.Router();
 
 const processTicketAttachments =
     uploadTicketFile.fields([
         {
-            name:
-                "archivo",
-
-            maxCount:
-                1
+            name: "archivo",
+            maxCount: 1
         },
         {
-            name:
-                "carpetaArchivos",
-
-            maxCount:
-                100
+            name: "carpetaArchivos",
+            maxCount: 100
         }
     ]);
 
 /*
-    GET /tickets
-*/
+ * GET /tickets
+ */
 router.get(
     "/",
     getTickets
 );
 
 /*
-    Rutas de comentarios:
+ * GET /tickets/dashboard
+ *
+ * Debe colocarse antes de /:id.
+ * De lo contrario, Express interpreta
+ * "dashboard" como el ID de un ticket.
+ */
+router.get(
+    "/dashboard",
+    getDashboardTickets
+);
 
-    GET    /tickets/:ticketId/comments
-    POST   /tickets/:ticketId/comments
-    PUT    /tickets/:ticketId/comments/:commentId
-    DELETE /tickets/:ticketId/comments/:commentId
-*/
+/*
+ * Rutas de comentarios:
+ *
+ * GET    /tickets/:ticketId/comments
+ * POST   /tickets/:ticketId/comments
+ * PUT    /tickets/:ticketId/comments/:commentId
+ * DELETE /tickets/:ticketId/comments/:commentId
+ */
 router.use(
     "/:ticketId/comments",
     ticketCommentRoutes
 );
 
 /*
-    GET /tickets/:id
-*/
+ * GET /tickets/:id
+ */
 router.get(
     "/:id",
     getTicket
 );
 
 /*
-    POST /tickets
-*/
+ * POST /tickets
+ */
 router.post(
     "/",
     processTicketAttachments,
@@ -88,8 +84,8 @@ router.post(
 );
 
 /*
-    PUT /tickets/:id
-*/
+ * PUT /tickets/:id
+ */
 router.put(
     "/:id",
     processTicketAttachments,
@@ -98,12 +94,11 @@ router.put(
 );
 
 /*
-    DELETE /tickets/:id
-*/
+ * DELETE /tickets/:id
+ */
 router.delete(
     "/:id",
     removeTicket
 );
 
-module.exports =
-    router;
+module.exports = router;

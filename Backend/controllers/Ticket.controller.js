@@ -26,18 +26,412 @@ const {
     deleteTicketDriveStorage
 } = require("../services/GoogleDrive/TicketDrive");
 
+const DASHBOARD_DAYS_AHEAD = 7;
+
+function normalizeValue(value) {
+    return String(value ?? "")
+        .trim()
+        .toLowerCase();
+}
+
+function getEmployeeRole(employee) {
+    if (!employee) {
+        return "";
+    }
+
+    if (Array.isArray(employee.roles)) {
+        const roles = employee.roles
+            .map(normalizeValue)
+            .filter(Boolean);
+
+        if (roles.includes("admin")) {
+            return "admin";
+        }
+
+        return roles[0] || "";
+    }
+
+    return normalizeValue(
+        employee.rol ||
+        employee.role ||
+        employee.tipoRol ||
+        employee.tipo_usuario
+    );
+}
+
+function isAdminEmployee(employee) {
+    return getEmployeeRole(employee) === "admin";
+}
+
+function getPublicEmployee(employee) {
+    return {
+        id:
+            employee?.id ||
+            employee?.employeeId ||
+            "",
+
+        google_id:
+            employee?.google_id ||
+            employee?.googleId ||
+            "",
+
+        nombre:
+            employee?.nombre ||
+            employee?.name ||
+            "",
+
+        correo:
+            employee?.correo ||
+            employee?.email ||
+            "",
+
+        foto_url:
+            employee?.foto_url ||
+            employee?.picture ||
+            "",
+
+        rol:
+            getEmployeeRole(employee),
+
+        activo:
+            employee?.activo !== false
+    };
+}
+
+function getEmployeeIdentifiers(employee) {
+    return new Set(
+        [
+            employee?.id,
+            employee?.employeeId,
+            employee?.empleadoId,
+            employee?.google_id,
+            employee?.googleId
+        ]
+            .map(normalizeValue)
+            .filter(Boolean)
+    );
+}
+
+function ticketIsAssignedToEmployee(
+    ticket,
+    employee
+) {
+    const employeeIdentifiers =
+        getEmployeeIdentifiers(employee);
+
+    const ticketEmployeeIdentifiers = [
+        ticket?.empleadoId,
+        ticket?.employeeId,
+        ticket?.assignedEmployeeId,
+        ticket?.assignedToId
+    ]
+        .map(normalizeValue)
+        .filter(Boolean);
+
+    return ticketEmployeeIdentifiers.some(
+        (identifier) => {
+            return employeeIdentifiers.has(
+                identifier
+            );
+        }
+    );
+}
+
+function parseDateValue(value) {
+    if (!value) {
+        return null;
+    }
+
+    let date = null;
+
+    if (
+        typeof value === "object" &&
+        typeof value.toDate === "function"
+    ) {
+        date = value.toDate();
+    } else if (
+        typeof value === "object" &&
+        typeof value.seconds === "number"
+    ) {
+        date = new Date(
+            value.seconds * 1000
+        );
+    } else if (
+        typeof value === "object" &&
+        typeof value._seconds === "number"
+    ) {
+        date = new Date(
+            value._seconds * 1000
+        );
+    } else if (
+        typeof value === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ) {
+        const [
+            year,
+            month,
+            day
+        ] = value
+            .split("-")
+            .map(Number);
+
+        date = new Date(
+            year,
+            month - 1,
+            day
+        );
+    } else {
+        date = new Date(value);
+    }
+
+    if (
+        !date ||
+        Number.isNaN(date.getTime())
+    ) {
+        return null;
+    }
+
+    return date;
+}
+
+function getTicketDueDate(ticket) {
+    return parseDateValue(
+        ticket?.expirationDate ||
+        ticket?.fechaVencimiento ||
+        ticket?.dueDate
+    );
+}
+
+function getTicketCreationDate(ticket) {
+    return parseDateValue(
+        ticket?.createdAt ||
+        ticket?.fecha_creacion
+    );
+}
+
+function isTicketCompleted(ticket) {
+    if (ticket?.isCompleted === true) {
+        return true;
+    }
+
+    const status = normalizeValue(
+        ticket?.estadoNombre ||
+        ticket?.estado
+    );
+
+    return [
+        "completado",
+        "completa",
+        "cerrado",
+        "cerrada"
+    ].includes(status);
+}
+
+function getStartOfToday() {
+    const date = new Date();
+
+    date.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+    return date;
+}
+
+function isTicketOverdue(ticket) {
+    if (isTicketCompleted(ticket)) {
+        return false;
+    }
+
+    const dueDate =
+        getTicketDueDate(ticket);
+
+    return Boolean(
+        dueDate &&
+        dueDate < getStartOfToday()
+    );
+}
+
+function isTicketDueSoon(ticket) {
+    if (
+        isTicketCompleted(ticket) ||
+        isTicketOverdue(ticket)
+    ) {
+        return false;
+    }
+
+    const dueDate =
+        getTicketDueDate(ticket);
+
+    if (!dueDate) {
+        return false;
+    }
+
+    const today =
+        getStartOfToday();
+
+    const limit =
+        new Date(today);
+
+    limit.setDate(
+        limit.getDate() +
+        DASHBOARD_DAYS_AHEAD
+    );
+
+    return (
+        dueDate >= today &&
+        dueDate <= limit
+    );
+}
+
+function isHighPriority(ticket) {
+    const priority =
+        normalizeValue(
+            ticket?.prioridad
+        );
+
+    return [
+        "alta",
+        "critica",
+        "crítica"
+    ].includes(priority);
+}
+
+function getPriorityWeight(ticket) {
+    const priority =
+        normalizeValue(
+            ticket?.prioridad
+        );
+
+    const weights = {
+        critica: 4,
+        "crítica": 4,
+        alta: 3,
+        media: 2,
+        baja: 1
+    };
+
+    return weights[priority] || 0;
+}
+
+function sortDashboardTickets(tickets) {
+    return [
+        ...tickets
+    ].sort(
+        (
+            ticketA,
+            ticketB
+        ) => {
+            const overdueDifference =
+                Number(
+                    isTicketOverdue(ticketB)
+                ) -
+                Number(
+                    isTicketOverdue(ticketA)
+                );
+
+            if (overdueDifference !== 0) {
+                return overdueDifference;
+            }
+
+            const dueSoonDifference =
+                Number(
+                    isTicketDueSoon(ticketB)
+                ) -
+                Number(
+                    isTicketDueSoon(ticketA)
+                );
+
+            if (dueSoonDifference !== 0) {
+                return dueSoonDifference;
+            }
+
+            const priorityDifference =
+                getPriorityWeight(ticketB) -
+                getPriorityWeight(ticketA);
+
+            if (priorityDifference !== 0) {
+                return priorityDifference;
+            }
+
+            const dateA =
+                getTicketCreationDate(ticketA)
+                    ?.getTime() ||
+                0;
+
+            const dateB =
+                getTicketCreationDate(ticketB)
+                    ?.getTime() ||
+                0;
+
+            return dateB - dateA;
+        }
+    );
+}
+
+function buildDashboardSummary(tickets) {
+    const summary = {
+        total: tickets.length,
+        abiertos: 0,
+        completados: 0,
+        altaPrioridad: 0,
+        vencidos: 0,
+        proximos: 0,
+        sinFecha: 0
+    };
+
+    tickets.forEach(
+        (ticket) => {
+            if (isTicketCompleted(ticket)) {
+                summary.completados += 1;
+            } else {
+                summary.abiertos += 1;
+            }
+
+            if (isHighPriority(ticket)) {
+                summary.altaPrioridad += 1;
+            }
+
+            if (isTicketOverdue(ticket)) {
+                summary.vencidos += 1;
+            }
+
+            if (isTicketDueSoon(ticket)) {
+                summary.proximos += 1;
+            }
+
+            if (!getTicketDueDate(ticket)) {
+                summary.sinFecha += 1;
+            }
+        }
+    );
+
+    return summary;
+}
+
 function getUploadedFiles(req) {
-    if (!req.files || typeof req.files !== "object") {
+    if (
+        !req.files ||
+        typeof req.files !== "object"
+    ) {
         return [];
     }
 
-    const individualFiles = Array.isArray(req.files.archivo)
-        ? req.files.archivo
-        : [];
+    const individualFiles =
+        Array.isArray(
+            req.files.archivo
+        )
+            ? req.files.archivo
+            : [];
 
-    const folderFiles = Array.isArray(req.files.carpetaArchivos)
-        ? req.files.carpetaArchivos
-        : [];
+    const folderFiles =
+        Array.isArray(
+            req.files.carpetaArchivos
+        )
+            ? req.files.carpetaArchivos
+            : [];
 
     return [
         ...individualFiles,
@@ -46,33 +440,41 @@ function getUploadedFiles(req) {
 }
 
 async function deleteTemporaryFiles(req) {
-    const files = getUploadedFiles(req);
+    const files =
+        getUploadedFiles(req);
 
     await Promise.all(
-        files.map(async (file) => {
-            if (!file?.path) {
-                return;
-            }
+        files.map(
+            async (file) => {
+                if (!file?.path) {
+                    return;
+                }
 
-            try {
-                await fs.unlink(file.path);
+                try {
+                    await fs.unlink(
+                        file.path
+                    );
 
-                console.log(
-                    "Archivo temporal eliminado:",
-                    file.path
-                );
-            } catch (error) {
-                console.warn(
-                    "No fue posible eliminar el archivo temporal:",
-                    file.path,
-                    error.message
-                );
+                    console.log(
+                        "Archivo temporal eliminado:",
+                        file.path
+                    );
+                } catch (error) {
+                    console.warn(
+                        "No fue posible eliminar el archivo temporal:",
+                        file.path,
+                        error.message
+                    );
+                }
             }
-        })
+        )
     );
 }
 
-function parseFolderPaths(req, folderFiles) {
+function parseFolderPaths(
+    req,
+    folderFiles
+) {
     if (
         !Array.isArray(folderFiles) ||
         folderFiles.length === 0
@@ -150,10 +552,14 @@ function buildCreateTicketData(req) {
     return {
         usuarioId:
             req.body?.usuarioId ||
+            req.user?.id ||
+            req.user?.employeeId ||
             "",
 
         usuarioNombre:
             req.body?.usuarioNombre ||
+            req.user?.nombre ||
+            req.user?.correo ||
             "Usuario",
 
         titulo:
@@ -282,9 +688,7 @@ function getAttachmentMessage(
 async function trySendAssignmentEmail(ticket) {
     if (!ticket?.empleadoId) {
         return {
-            enviado:
-                false,
-
+            enviado: false,
             motivo:
                 "El ticket no tiene empleado asignado."
         };
@@ -298,9 +702,7 @@ async function trySendAssignmentEmail(ticket) {
 
         if (!employee) {
             return {
-                enviado:
-                    false,
-
+                enviado: false,
                 motivo:
                     "No se encontró el empleado asignado."
             };
@@ -313,9 +715,7 @@ async function trySendAssignmentEmail(ticket) {
 
         if (!employeeEmail) {
             return {
-                enviado:
-                    false,
-
+                enviado: false,
                 motivo:
                     "El empleado asignado no tiene correo registrado."
             };
@@ -325,9 +725,7 @@ async function trySendAssignmentEmail(ticket) {
             await sendTicketAssignmentEmail({
                 employee: {
                     ...employee,
-
-                    correo:
-                        employeeEmail
+                    correo: employeeEmail
                 },
 
                 ticket
@@ -344,8 +742,7 @@ async function trySendAssignmentEmail(ticket) {
                         ticket.empleadoId,
 
                     destinatario:
-                        emailResult
-                            .destinatario
+                        emailResult.destinatario
                 }
             );
         } else {
@@ -364,8 +761,7 @@ async function trySendAssignmentEmail(ticket) {
         );
 
         return {
-            enviado:
-                false,
+            enviado: false,
 
             motivo:
                 error.message ||
@@ -375,11 +771,8 @@ async function trySendAssignmentEmail(ticket) {
 }
 
 async function postTicket(req, res) {
-    let ticketCreated =
-        null;
-
-    let driveStructure =
-        null;
+    let ticketCreated = null;
+    let driveStructure = null;
 
     try {
         const attachmentSelection =
@@ -430,13 +823,6 @@ async function postTicket(req, res) {
                 }
             );
 
-        /*
-         * El correo se intenta enviar cuando el
-         * ticket y su estructura de Drive ya fueron
-         * creados correctamente.
-         *
-         * Si Gmail falla, el ticket no se elimina.
-         */
         const emailResult =
             await trySendAssignmentEmail(
                 finalTicket
@@ -445,8 +831,7 @@ async function postTicket(req, res) {
         return res
             .status(201)
             .json({
-                ok:
-                    true,
+                ok: true,
 
                 mensaje:
                     getAttachmentMessage(
@@ -500,8 +885,7 @@ async function postTicket(req, res) {
         return res
             .status(400)
             .json({
-                ok:
-                    false,
+                ok: false,
 
                 mensaje:
                     error.message ||
@@ -520,9 +904,7 @@ async function getTickets(req, res) {
         return res
             .status(200)
             .json({
-                ok:
-                    true,
-
+                ok: true,
                 tickets
             });
     } catch (error) {
@@ -534,12 +916,98 @@ async function getTickets(req, res) {
         return res
             .status(500)
             .json({
-                ok:
-                    false,
+                ok: false,
 
                 mensaje:
                     error.message ||
                     "No fue posible obtener los tickets."
+            });
+    }
+}
+
+async function getDashboardTickets(
+    req,
+    res
+) {
+    try {
+        const employee =
+            req.user;
+
+        if (!employee) {
+            return res
+                .status(401)
+                .json({
+                    ok: false,
+
+                    mensaje:
+                        "Debe iniciar sesión para acceder a este recurso."
+                });
+        }
+
+        const allTickets =
+            await getAllTickets();
+
+        const admin =
+            isAdminEmployee(
+                employee
+            );
+
+        const visibleTickets =
+            admin
+                ? allTickets
+                : allTickets.filter(
+                    (ticket) => {
+                        return ticketIsAssignedToEmployee(
+                            ticket,
+                            employee
+                        );
+                    }
+                );
+
+        const tickets =
+            sortDashboardTickets(
+                visibleTickets
+            );
+
+        return res
+            .status(200)
+            .json({
+                ok: true,
+
+                alcance:
+                    admin
+                        ? "general"
+                        : "personal",
+
+                diasProximos:
+                    DASHBOARD_DAYS_AHEAD,
+
+                usuario:
+                    getPublicEmployee(
+                        employee
+                    ),
+
+                resumen:
+                    buildDashboardSummary(
+                        tickets
+                    ),
+
+                tickets
+            });
+    } catch (error) {
+        console.error(
+            "Error obteniendo dashboard de tickets:",
+            error
+        );
+
+        return res
+            .status(500)
+            .json({
+                ok: false,
+
+                mensaje:
+                    error.message ||
+                    "No fue posible cargar el dashboard."
             });
     }
 }
@@ -580,8 +1048,7 @@ async function getTicket(req, res) {
         return res
             .status(200)
             .json({
-                ok:
-                    true,
+                ok: true,
 
                 ticket:
                     finalTicket
@@ -601,8 +1068,7 @@ async function getTicket(req, res) {
         return res
             .status(status)
             .json({
-                ok:
-                    false,
+                ok: false,
 
                 mensaje:
                     error.message ||
@@ -612,8 +1078,7 @@ async function getTicket(req, res) {
 }
 
 async function putTicket(req, res) {
-    let replacementResult =
-        null;
+    let replacementResult = null;
 
     try {
         const {
@@ -735,8 +1200,7 @@ async function putTicket(req, res) {
         return res
             .status(200)
             .json({
-                ok:
-                    true,
+                ok: true,
 
                 mensaje:
                     getAttachmentMessage(
@@ -767,8 +1231,7 @@ async function putTicket(req, res) {
         return res
             .status(status)
             .json({
-                ok:
-                    false,
+                ok: false,
 
                 mensaje:
                     error.message ||
@@ -781,6 +1244,21 @@ async function putTicket(req, res) {
 
 async function removeTicket(req, res) {
     try {
+        if (
+            !isAdminEmployee(
+                req.user
+            )
+        ) {
+            return res
+                .status(403)
+                .json({
+                    ok: false,
+
+                    mensaje:
+                        "Solo los administradores pueden eliminar tickets."
+                });
+        }
+
         const {
             id
         } = req.params;
@@ -815,8 +1293,7 @@ async function removeTicket(req, res) {
         return res
             .status(200)
             .json({
-                ok:
-                    true,
+                ok: true,
 
                 mensaje:
                     "Ticket, comentarios y archivos eliminados correctamente.",
@@ -839,8 +1316,7 @@ async function removeTicket(req, res) {
         return res
             .status(status)
             .json({
-                ok:
-                    false,
+                ok: false,
 
                 mensaje:
                     error.message ||
@@ -852,6 +1328,7 @@ async function removeTicket(req, res) {
 module.exports = {
     postTicket,
     getTickets,
+    getDashboardTickets,
     getTicket,
     putTicket,
     removeTicket
